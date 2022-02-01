@@ -28,7 +28,7 @@ JSList._fields_ = [("data", c_void_p), ("next", POINTER(JSList))]
 
 
 class JSIter:
-    def __init__(self, ptr: Any, type_: Any = c_void_p):
+    def __init__(self, ptr: Any, type_: Any = c_void_p) -> None:
         self.ptr = ptr
         self.type = type_
 

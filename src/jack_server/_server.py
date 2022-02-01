@@ -7,7 +7,7 @@ import jack_server._libjackserver_bindings as lib
 
 
 class Parameter:
-    def __init__(self, ptr: Any):
+    def __init__(self, ptr: Any) -> None:
         self.ptr = ptr
         self.type = lib.jackctl_parameter_get_type(self.ptr)
 
@@ -16,7 +16,7 @@ class Parameter:
         return lib.jackctl_parameter_get_name(self.ptr)
 
     @property
-    def value(self):
+    def value(self) -> int | str | bytes | bool | None:
         param_v = lib.jackctl_parameter_get_value(self.ptr)
         if self.type == 1:
             # JackParamInt
@@ -35,7 +35,7 @@ class Parameter:
             return param_v.b
 
     @value.setter
-    def value(self, val: Any):
+    def value(self, val: Any) -> None:
         param_v = lib.jackctl_parameter_value()
         if self.type == 1:
             # JackParamInt
@@ -63,7 +63,7 @@ class Parameter:
 SampleRate = Literal[44100, 48000]
 
 
-def _get_params_dict(params_jslist: Any):
+def _get_params_dict(params_jslist: Any) -> dict[bytes, Parameter]:
     params: dict[bytes, Parameter] = {}
 
     for param_ptr in lib.JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
@@ -74,7 +74,7 @@ def _get_params_dict(params_jslist: Any):
 
 
 class Driver:
-    def __init__(self, ptr: Any):
+    def __init__(self, ptr: Any) -> None:
         self.ptr = ptr
 
         params_jslist = lib.jackctl_driver_get_parameters(self.ptr)
@@ -84,10 +84,10 @@ class Driver:
     def name(self) -> str:
         return lib.jackctl_driver_get_name(self.ptr).decode()
 
-    def set_device(self, name: str):
+    def set_device(self, name: str) -> None:
         self.params[b"device"].value = name.encode()
 
-    def set_rate(self, rate: SampleRate):
+    def set_rate(self, rate: SampleRate) -> None:
         self.params[b"rate"].value = rate
 
 
@@ -107,7 +107,7 @@ class Server:
         device: str,
         rate: SampleRate | None = None,
         sync: bool = False,
-    ):
+    ) -> None:
         self.ptr = lib.jackctl_server_create(
             lib.DeviceAcquireFunc(),  # type: ignore
             lib.DeviceReleaseFunc(),  # type: ignore
@@ -128,7 +128,7 @@ class Server:
         if sync:
             self.set_sync(sync)
 
-    def get_driver_by_name(self, name: str):
+    def get_driver_by_name(self, name: str) -> Driver:
         driver_jslist = lib.jackctl_server_get_drivers_list(self.ptr)
 
         for ptr in lib.JSIter(driver_jslist, POINTER(lib.jackctl_driver_t)):
@@ -138,10 +138,10 @@ class Server:
 
         raise RuntimeError(f"Driver not found: {name}")
 
-    def set_sync(self, sync: bool):
+    def set_sync(self, sync: bool) -> None:
         self.params[b"sync"].value = sync
 
-    def start(self):
+    def start(self) -> None:
         self._opened = lib.jackctl_server_open(self.ptr, self.driver.ptr)
         if not self._opened:
             raise ServerNotStartedError
@@ -150,7 +150,7 @@ class Server:
         if not self._started:
             raise ServerNotOpenedError
 
-    def stop(self):
+    def stop(self) -> None:
         if self._started:
             lib.jackctl_server_stop(self.ptr)
         self._started = False
@@ -159,7 +159,7 @@ class Server:
             lib.jackctl_server_close(self.ptr)
         self._opened = False
 
-    def __del__(self):
+    def __del__(self) -> None:
         if getattr(self, "_created", None):
             lib.jackctl_server_destroy(self.ptr)
 
@@ -169,7 +169,7 @@ _dont_garbage_collect: list[Any] = []
 
 def _wrap_error_or_info_callback(
     callback: Callable[[str], None] | None,
-):
+) -> lib.PrintFunction:
     if callback:
 
         def wrapped_callback(message: bytes):
@@ -183,9 +183,9 @@ def _wrap_error_or_info_callback(
     return cb
 
 
-def set_info_function(callback: Callable[[str], None] | None):
+def set_info_function(callback: Callable[[str], None] | None) -> None:
     lib.jack_set_info_function(_wrap_error_or_info_callback(callback))
 
 
-def set_error_function(callback: Callable[[str], None] | None):
+def set_error_function(callback: Callable[[str], None] | None) -> None:
     lib.jack_set_error_function(_wrap_error_or_info_callback(callback))
