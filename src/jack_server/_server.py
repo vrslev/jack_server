@@ -3,7 +3,7 @@ from __future__ import annotations
 from ctypes import POINTER, pointer
 from typing import Any, Callable, Literal
 
-import jack_server._libjackserver_bindings as lib
+import jack_server._lib as lib
 
 
 class Parameter:
