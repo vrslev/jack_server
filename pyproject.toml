@@ -5,6 +5,7 @@ description = "Control JACK server with Python"
 authors = ["Lev Vereshchagin <mail@vrslev.com>"]
 license = "MIT"
 readme = "README.md"
+include = ["src/jack_server/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
