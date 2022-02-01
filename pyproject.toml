@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "jack-server"
+version = "0.0.1"
+description = "Control JACK server with Python"
+authors = ["Lev Vereshchagin <mail@vrslev.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+pre-commit = "^2.17.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
