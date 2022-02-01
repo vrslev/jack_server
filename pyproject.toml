@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jack-server"
-version = "0.0.1"
+version = "0"
 description = "Control JACK server with Python"
 authors = ["Lev Vereshchagin <mail@vrslev.com>"]
 license = "MIT"
@@ -17,6 +17,9 @@ pre-commit = "^2.17.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry-version-plugin]
+source = "git-tag"
 
 [tool.pyright]
 ignore = [".venv"]
