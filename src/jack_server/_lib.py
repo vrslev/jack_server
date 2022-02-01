@@ -17,6 +17,13 @@ from ctypes.util import find_library
 from typing import Any, Callable, Literal
 
 lib_name = find_library("libjackserver")
+
+if not lib_name:
+    lib_name = find_library("jackserver")
+
+if not lib_name:
+    raise RuntimeError("Couldn't find libjackserver")
+
 lib = CDLL(lib_name)
 
 
