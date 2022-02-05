@@ -26,6 +26,7 @@ ignore = [".venv"]
 pythonVersion = "3.8"
 typeCheckingMode = "strict"
 reportUnnecessaryTypeIgnoreComment = "warning"
+reportPrivateUsage = false
 
 [tool.isort]
 profile = "black"
