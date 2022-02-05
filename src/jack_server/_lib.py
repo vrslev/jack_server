@@ -111,17 +111,17 @@ jackctl_server_open: Callable[[Any, Any], bool] = lib.jackctl_server_open
 jackctl_server_open.argtypes = [POINTER(jackctl_server_t), POINTER(jackctl_driver_t)]
 jackctl_server_open.restype = c_bool
 
-DeviceAcquireFunc = CFUNCTYPE(c_bool, c_char_p)
-DeviceReleaseFunc = CFUNCTYPE(None, c_char_p)
-DeviceReservationLoop = CFUNCTYPE(None)
+OnDeviceAcquire = CFUNCTYPE(c_bool, c_char_p)
+OnDeviceRelease = CFUNCTYPE(None, c_char_p)
+OnDeviceReservationLoop = CFUNCTYPE(None)
 
 jackctl_server_create2: Callable[
     [Callable[..., Any], Callable[..., Any], Callable[..., Any]], Any
 ] = lib.jackctl_server_create2
 jackctl_server_create2.argtypes = [
-    DeviceAcquireFunc,
-    DeviceReleaseFunc,
-    DeviceReservationLoop,
+    OnDeviceAcquire,
+    OnDeviceRelease,
+    OnDeviceReservationLoop,
 ]
 jackctl_server_create2.restype = POINTER(jackctl_server_t)
 

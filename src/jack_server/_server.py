@@ -117,7 +117,7 @@ class Driver:
         self.params[b"rate"].value = rate
 
 
-class ServerNotStartedError(RuntimeError):
+class ServerNotStartedError(RuntimeError):  # TODO: Add base jackservererror
     pass
 
 
@@ -141,14 +141,11 @@ class Server:
         rate: SampleRate | None = None,
         sync: bool = False,
     ) -> None:
-        self.ptr = lib.jackctl_server_create2(
-            lib.DeviceAcquireFunc(),  # type: ignore # TODO: Is this right?
-            lib.DeviceReleaseFunc(),  # type: ignore
-            lib.DeviceReservationLoop(),  # type: ignore
-        )
-        self._created = True
+        self._created = False
         self._opened = False
         self._started = False
+
+        self._create()
 
         params_jslist = lib.jackctl_server_get_parameters(self.ptr)
         self.params = _get_params_dict(params_jslist)
@@ -162,6 +159,61 @@ class Server:
         if sync:
             self.set_sync(sync)
 
+    def _create(
+        self,
+        on_device_acquire: Callable[[bytes], bool] | None = None,
+        on_device_release: Callable[[bytes], None] | None = None,
+        on_device_reservation_loop: Callable[[], None] | None = None,
+    ) -> None:
+        if not on_device_acquire:
+            on_device_acquire = lambda m: True
+        if not on_device_release:
+            on_device_release = lambda m: None
+        if not on_device_reservation_loop:
+            on_device_reservation_loop = lambda: None
+
+        self.ptr = lib.jackctl_server_create2(
+            lib.OnDeviceAcquire(on_device_acquire),
+            lib.OnDeviceRelease(on_device_release),
+            lib.OnDeviceReservationLoop(on_device_reservation_loop),
+        )
+        self._created = True
+
+    def _open(self) -> None:
+        self._opened = lib.jackctl_server_open(self.ptr, self.driver.ptr)
+        if not self._opened:
+            raise ServerNotOpenedError
+
+    def _start(self) -> None:
+        self._started = lib.jackctl_server_start(self.ptr)
+        if not self._started:
+            raise ServerNotStartedError
+
+    def start(self) -> None:
+        self._open()
+        self._start()
+
+    def _close(self) -> None:
+        if self._opened:
+            lib.jackctl_server_close(self.ptr)
+            self._opened = False
+
+    def _stop(self) -> None:
+        if self._started:
+            lib.jackctl_server_stop(self.ptr)
+            self._started = False
+
+    def stop(self) -> None:
+        self._stop()
+        self._close()
+
+    def _destroy(self) -> None:
+        if self._created:
+            lib.jackctl_server_destroy(self.ptr)
+
+    def __del__(self) -> None:
+        self._destroy()
+
     def get_driver_by_name(self, name: str) -> Driver:
         driver_jslist = lib.jackctl_server_get_drivers_list(self.ptr)
 
@@ -170,32 +222,10 @@ class Server:
             if driver.name == name:
                 return driver
 
-        raise RuntimeError(f"Driver not found: {name}")
+        raise RuntimeError(f"Driver not found: {name}")  # TODO: Custom error
 
     def set_sync(self, sync: bool) -> None:
         self.params[b"sync"].value = sync
-
-    def start(self) -> None:
-        self._opened = lib.jackctl_server_open(self.ptr, self.driver.ptr)
-        if not self._opened:
-            raise ServerNotStartedError
-
-        self._started = lib.jackctl_server_start(self.ptr)
-        if not self._started:
-            raise ServerNotOpenedError
-
-    def stop(self) -> None:
-        if self._started:
-            lib.jackctl_server_stop(self.ptr)
-        self._started = False
-
-        if self._opened:
-            lib.jackctl_server_close(self.ptr)
-        self._opened = False
-
-    def __del__(self) -> None:
-        if getattr(self, "_created", None):
-            lib.jackctl_server_destroy(self.ptr)
 
 
 _dont_garbage_collect: list[Any] = []
@@ -209,10 +239,12 @@ def _wrap_error_or_info_callback(
         def wrapped_callback(message: bytes):
             callback(message.decode())
 
-        cb = lib.PrintFunction(wrapped_callback)
     else:
-        cb = lib.PrintFunction()  # type: ignore
 
+        def wrapped_callback(message: bytes):
+            pass
+
+    cb = lib.PrintFunction(wrapped_callback)
     _dont_garbage_collect.append(cb)
     return cb
 
