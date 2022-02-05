@@ -4,7 +4,7 @@ from ctypes import POINTER, pointer
 from typing import Literal
 
 import jack_server._lib as lib
-from jack_server._jslist import iter_jslist
+from jack_server._jslist import iterate_over_jslist
 
 
 class Parameter:
@@ -74,7 +74,7 @@ class Parameter:
 def get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[str, Parameter]:
     params: dict[str, Parameter] = {}
 
-    for ptr in iter_jslist(jslist, POINTER(lib.jackctl_parameter_t)):
+    for ptr in iterate_over_jslist(jslist, POINTER(lib.jackctl_parameter_t)):
         param = Parameter(ptr)
         params[param.name] = param
 

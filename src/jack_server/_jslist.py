@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     _T = TypeVar("_T", bound=_CanCastTo)
 
 
-def iter_jslist(
+def iterate_over_jslist(
     ptr: pointer[lib.JSList], type_: type[_T] = c_void_p
 ) -> Generator[_T, None, None]:
     cur_ptr = ptr
+
     while True:
         if not cur_ptr:
             return
