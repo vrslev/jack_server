@@ -129,11 +129,15 @@ class Driver:
         return f"<jack_server.Driver name={self.name}>"
 
 
-class ServerNotStartedError(RuntimeError):  # TODO: Add base jackservererror
+class JackServerError(RuntimeError):
     pass
 
 
-class ServerNotOpenedError(RuntimeError):
+class ServerNotStartedError(JackServerError):
+    pass
+
+
+class ServerNotOpenedError(JackServerError):
     pass
 
 
