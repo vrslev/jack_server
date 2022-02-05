@@ -207,12 +207,12 @@ class Server:
     def _open(self) -> None:
         self._opened = lib.jackctl_server_open(self.ptr, self.driver.ptr)
         if not self._opened:
-            raise ServerNotOpenedError
+            raise ServerNotOpenedError("Server couldn't be opened")
 
     def _start(self) -> None:
         self._started = lib.jackctl_server_start(self.ptr)
         if not self._started:
-            raise ServerNotStartedError
+            raise ServerNotStartedError("Server couldn't be started")
 
     def start(self) -> None:
         self._open()
