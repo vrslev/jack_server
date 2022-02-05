@@ -2,36 +2,35 @@ from __future__ import annotations
 
 from ctypes import POINTER, c_void_p, cast, pointer
 from functools import wraps
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Generator, Literal, TypeVar
 
 import jack_server._lib as lib
 
+if TYPE_CHECKING:
+    from ctypes import _CanCastTo
 
-class JSIter:
-    ptr: Any
-    type: Any
+    _T = TypeVar("_T", bound=_CanCastTo)
 
-    def __init__(self, ptr: Any, type_: Any = c_void_p) -> None:
-        self.ptr = ptr
-        self.type = type_
 
-    def __iter__(self):
-        return self
+def iter_jslist(
+    ptr: pointer[lib.JSList], type_: type[_T] = c_void_p
+) -> Generator[_T, None, None]:
+    cur_ptr = ptr
+    while True:
+        if not cur_ptr:
+            return
 
-    def __next__(self) -> Any:
-        if not self.ptr:
-            raise StopIteration
+        data = cur_ptr.contents.data
+        cur_ptr = cur_ptr.contents.next
 
-        retval = self.ptr.contents.data
-        self.ptr = self.ptr.contents.next
-        return cast(retval, self.type)
+        yield cast(data, type_)
 
 
 class Parameter:
-    ptr: Any
+    ptr: pointer[lib.jackctl_parameter_t]
     type: Literal[1, 2, 3, 4, 5]
 
-    def __init__(self, ptr: Any) -> None:
+    def __init__(self, ptr: pointer[lib.jackctl_parameter_t]) -> None:
         self.ptr = ptr
         self.type = lib.jackctl_parameter_get_type(self.ptr)
 
@@ -40,54 +39,61 @@ class Parameter:
         return lib.jackctl_parameter_get_name(self.ptr)
 
     @property
-    def value(self) -> int | str | bytes | bool | None:
-        param_v = lib.jackctl_parameter_get_value(self.ptr)
+    def value(self) -> int | str | bytes | bool:
+        val = lib.jackctl_parameter_get_value(self.ptr)
+
         if self.type == 1:
             # JackParamInt
-            return param_v.i
+            return val.i
         elif self.type == 2:
             # JackParamUInt
-            return param_v.ui
+            return val.ui
         elif self.type == 3:
             # JackParamChar
-            return param_v.c
+            return val.c
         elif self.type == 4:
             # JackParamString
-            return param_v.ss
+            return val.ss
         elif self.type == 5:
             # JackParamBool
-            return param_v.b
+            return val.b
+        else:
+            raise NotImplementedError
 
     @value.setter
-    def value(self, val: Any) -> None:
-        param_v = lib.jackctl_parameter_value()
+    def value(self, val: int | str | bytes | bool) -> None:
+        val_obj = lib.jackctl_parameter_value()
+
         if self.type == 1:
             # JackParamInt
-            param_v.i = int(val)
+            val_obj.i = int(val)
         elif self.type == 2:
             # JackParamUInt
-            param_v.ui = int(val)
+            val_obj.ui = int(val)
         elif self.type == 3:
             # JackParamChar
             assert isinstance(val, str) and len(val) == 1
-            param_v.c = val
+            val_obj.c = val
         elif self.type == 4:
             # JackParamString
             assert isinstance(val, bytes)
-            param_v.ss = val
+            val_obj.ss = val
         elif self.type == 5:
             # JackParamBool
-            param_v.b = bool(val)
-        lib.jackctl_parameter_set_value(self.ptr, pointer(param_v))
+            val_obj.b = bool(val)
+        else:
+            raise NotImplementedError
+
+        lib.jackctl_parameter_set_value(self.ptr, pointer(val_obj))
 
     def __repr__(self) -> str:
         return f"<jack_server.Parameter value={self.value}>"
 
 
-def _get_params_from_js_list(params_jslist: Any) -> dict[bytes, Parameter]:
+def _get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[bytes, Parameter]:
     params: dict[bytes, Parameter] = {}
 
-    for ptr in JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
+    for ptr in iter_jslist(jslist, POINTER(lib.jackctl_parameter_t)):
         param = Parameter(ptr)
         params[param.name] = param
 
@@ -98,16 +104,16 @@ SampleRate = Literal[44100, 48000]
 
 
 class Driver:
-    ptr: Any
+    ptr: pointer[lib.jackctl_driver_t]
     params: dict[bytes, Parameter]
 
-    def __init__(self, ptr: Any) -> None:
+    def __init__(self, ptr: pointer[lib.jackctl_driver_t]) -> None:
         self.ptr = ptr
         self._set_params()
 
     def _set_params(self) -> None:
         params_jslist = lib.jackctl_driver_get_parameters(self.ptr)
-        self.params = _get_params_from_js_list(params_jslist)
+        self.params = _get_params_from_jslist(params_jslist)
 
     @property
     def name(self) -> str:
@@ -129,13 +135,13 @@ class ServerNotOpenedError(RuntimeError):
 
 
 class Server:
-    ptr: Any
+    ptr: pointer[lib.jackctl_server_t]
     params: dict[bytes, Parameter]
     driver: Driver
     _created: bool
     _opened: bool
     _started: bool
-    _dont_garbage_collect: list[Any]
+    _dont_garbage_collect: list[object]
 
     def __init__(
         self,
@@ -224,12 +230,12 @@ class Server:
 
     def _set_params(self) -> None:
         jslist = lib.jackctl_server_get_parameters(self.ptr)
-        self.params = _get_params_from_js_list(jslist)
+        self.params = _get_params_from_jslist(jslist)
 
     def get_driver_by_name(self, name: str) -> Driver:
-        driver_jslist = lib.jackctl_server_get_drivers_list(self.ptr)
+        jslist = lib.jackctl_server_get_drivers_list(self.ptr)
 
-        for ptr in JSIter(driver_jslist, POINTER(lib.jackctl_driver_t)):
+        for ptr in iter_jslist(jslist, POINTER(lib.jackctl_driver_t)):
             driver = Driver(ptr)
             if driver.name == name:
                 return driver
@@ -240,7 +246,7 @@ class Server:
         self.params[b"sync"].value = sync
 
 
-_dont_garbage_collect: list[Any] = []
+_dont_garbage_collect: list[object] = []
 
 
 def _wrap_error_or_info_callback(

@@ -1,4 +1,3 @@
-# TODO: Use CFFI
 from ctypes import (
     CDLL,
     CFUNCTYPE,
@@ -11,9 +10,14 @@ from ctypes import (
     c_int,
     c_uint,
     c_void_p,
+    pointer,
 )
 from ctypes.util import find_library
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
+
+if TYPE_CHECKING:
+    from ctypes import _CData
+
 
 lib_name = find_library("libjackserver")
 
@@ -27,7 +31,8 @@ lib = CDLL(lib_name)
 
 
 class JSList(Structure):
-    pass
+    data: "_CData"
+    next: "pointer[JSList]"
 
 
 JSList._fields_ = [("data", c_void_p), ("next", POINTER(JSList))]
@@ -38,12 +43,14 @@ class jackctl_parameter_t(Structure):
 
 
 jackctl_parameter_get_type: Callable[
-    [Any], Literal[1, 2, 3, 4, 5]
+    ["pointer[jackctl_parameter_t]"], Literal[1, 2, 3, 4, 5]
 ] = lib.jackctl_parameter_get_type
 jackctl_parameter_get_type.argtypes = [POINTER(jackctl_parameter_t)]
 jackctl_parameter_get_type.restype = c_uint
 
-jackctl_parameter_get_name: Callable[[Any], bytes] = lib.jackctl_parameter_get_name
+jackctl_parameter_get_name: Callable[
+    ["pointer[jackctl_parameter_t]"], bytes
+] = lib.jackctl_parameter_get_name
 jackctl_parameter_get_name.argtypes = [POINTER(jackctl_parameter_t)]
 jackctl_parameter_get_name.restype = c_char_p
 
@@ -65,7 +72,7 @@ class jackctl_parameter_value(Union):
 
 
 jackctl_parameter_set_value: Callable[
-    [Any, Any], bool
+    ["pointer[jackctl_parameter_t]", "pointer[jackctl_parameter_value]"], bool
 ] = lib.jackctl_parameter_set_value
 jackctl_parameter_set_value.argtypes = [
     POINTER(jackctl_parameter_t),
@@ -74,7 +81,7 @@ jackctl_parameter_set_value.argtypes = [
 jackctl_parameter_set_value.restype = c_bool
 
 jackctl_parameter_get_value: Callable[
-    [Any], jackctl_parameter_value
+    ["pointer[jackctl_parameter_t]"], jackctl_parameter_value
 ] = lib.jackctl_parameter_get_value
 jackctl_parameter_get_value.argtypes = [POINTER(jackctl_parameter_t)]
 jackctl_parameter_get_value.restype = jackctl_parameter_value
@@ -84,11 +91,15 @@ class jackctl_driver_t(Structure):
     pass
 
 
-jackctl_driver_get_parameters: Callable[[Any], Any] = lib.jackctl_driver_get_parameters
+jackctl_driver_get_parameters: Callable[
+    ["pointer[jackctl_driver_t]"], "pointer[JSList]"
+] = lib.jackctl_driver_get_parameters
 jackctl_driver_get_parameters.argtypes = [POINTER(jackctl_driver_t)]
 jackctl_driver_get_parameters.restype = POINTER(JSList)
 
-jackctl_driver_get_name: Callable[[Any], bytes] = lib.jackctl_driver_get_name
+jackctl_driver_get_name: Callable[
+    ["pointer[jackctl_driver_t]"], bytes
+] = lib.jackctl_driver_get_name
 jackctl_driver_get_name.argtypes = [POINTER(jackctl_driver_t)]
 jackctl_driver_get_name.restype = c_char_p
 
@@ -97,26 +108,13 @@ class jackctl_server_t(Structure):
     pass
 
 
-jackctl_server_get_drivers_list: Callable[
-    [Any], Any
-] = lib.jackctl_server_get_drivers_list
-jackctl_server_get_drivers_list.argtypes = [POINTER(jackctl_server_t)]
-jackctl_server_get_drivers_list.restype = POINTER(JSList)
-
-jackctl_server_start: Callable[[Any], bool] = lib.jackctl_server_start
-jackctl_server_start.argtypes = [POINTER(jackctl_server_t)]
-jackctl_server_start.restype = c_bool
-
-jackctl_server_open: Callable[[Any, Any], bool] = lib.jackctl_server_open
-jackctl_server_open.argtypes = [POINTER(jackctl_server_t), POINTER(jackctl_driver_t)]
-jackctl_server_open.restype = c_bool
-
 OnDeviceAcquire = CFUNCTYPE(c_bool, c_char_p)
 OnDeviceRelease = CFUNCTYPE(None, c_char_p)
 OnDeviceReservationLoop = CFUNCTYPE(None)
 
 jackctl_server_create2: Callable[
-    [Callable[..., Any], Callable[..., Any], Callable[..., Any]], Any
+    [OnDeviceAcquire, OnDeviceRelease, OnDeviceReservationLoop],
+    "pointer[jackctl_server_t]",
 ] = lib.jackctl_server_create2
 jackctl_server_create2.argtypes = [
     OnDeviceAcquire,
@@ -125,33 +123,55 @@ jackctl_server_create2.argtypes = [
 ]
 jackctl_server_create2.restype = POINTER(jackctl_server_t)
 
-jackctl_server_stop: Callable[[Any], bool] = lib.jackctl_server_stop
-jackctl_server_stop.argtypes = [POINTER(jackctl_server_t)]
-jackctl_server_stop.restype = c_bool
+jackctl_server_open: Callable[
+    ["pointer[jackctl_server_t]", "pointer[jackctl_driver_t]"], bool
+] = lib.jackctl_server_open
+jackctl_server_open.argtypes = [POINTER(jackctl_server_t), POINTER(jackctl_driver_t)]
+jackctl_server_open.restype = c_bool
 
-jackctl_server_close: Callable[[Any], bool] = lib.jackctl_server_close
+jackctl_server_start: Callable[
+    ["pointer[jackctl_server_t]"], bool
+] = lib.jackctl_server_start
+jackctl_server_start.argtypes = [POINTER(jackctl_server_t)]
+jackctl_server_start.restype = c_bool
+
+jackctl_server_close: Callable[
+    ["pointer[jackctl_server_t]"], bool
+] = lib.jackctl_server_close
 jackctl_server_close.argtypes = [POINTER(jackctl_server_t)]
 jackctl_server_close.restype = c_bool
 
-jackctl_server_destroy: Callable[[Any], None] = lib.jackctl_server_destroy
+jackctl_server_stop: Callable[
+    ["pointer[jackctl_server_t]"], bool
+] = lib.jackctl_server_stop
+jackctl_server_stop.argtypes = [POINTER(jackctl_server_t)]
+jackctl_server_stop.restype = c_bool
+
+jackctl_server_destroy: Callable[
+    ["pointer[jackctl_server_t]"], None
+] = lib.jackctl_server_destroy
 jackctl_server_destroy.argtypes = [POINTER(jackctl_server_t)]
 jackctl_server_destroy.restype = c_void_p
 
-jackctl_server_get_parameters: Callable[[Any], Any] = lib.jackctl_server_get_parameters
+jackctl_server_get_parameters: Callable[
+    ["pointer[jackctl_server_t]"], "pointer[JSList]"
+] = lib.jackctl_server_get_parameters
 jackctl_server_get_parameters.argtypes = [POINTER(jackctl_server_t)]
 jackctl_server_get_parameters.restype = POINTER(JSList)
+
+jackctl_server_get_drivers_list: Callable[
+    ["pointer[jackctl_server_t]"], "pointer[JSList]"
+] = lib.jackctl_server_get_drivers_list
+jackctl_server_get_drivers_list.argtypes = [POINTER(jackctl_server_t)]
+jackctl_server_get_drivers_list.restype = POINTER(JSList)
 
 
 PrintFunction = CFUNCTYPE(None, c_char_p)
 
-jack_set_error_function: Callable[
-    [Callable[[bytes], None]], None
-] = lib.jack_set_error_function
+jack_set_error_function: Callable[[PrintFunction], None] = lib.jack_set_error_function
 jack_set_error_function.argtypes = [PrintFunction]
 jack_set_error_function.restype = None
 
-jack_set_info_function: Callable[
-    [Callable[[bytes], None]], None
-] = lib.jack_set_info_function
+jack_set_info_function: Callable[[PrintFunction], None] = lib.jack_set_info_function
 jack_set_info_function.argtypes = [PrintFunction]
 jack_set_info_function.restype = None
