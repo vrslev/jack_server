@@ -1,0 +1,114 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pre-commit
+            ~/.cache/pip
+          key: lint-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install pre-commit
+        run: pip install -U pre-commit
+
+      - name: Lint
+        run: pre-commit run --color=always --all-files
+
+  typing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: typing-${{ hashFiles('pyproject.toml') }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+
+      - name: Install Poetry
+        run: |
+          pip install -U poetry
+          poetry config virtualenvs.create false
+
+      - name: Install package
+        run: poetry install
+
+      - name: Install Pyright
+        run: npm install -g --no-package-lock --no-save pyright
+
+      - name: Check types
+        run: pyright
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    env:
+      LD_LIBRARY_PATH: /usr/local/lib
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: test-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install JACK
+        run: |
+          git clone https://github.com/jackaudio/jack2 /tmp/jack2
+          cd /tmp/jack2
+          ./waf configure --prefix=/usr/local
+          sudo ./waf install
+
+      - name: Install Poetry
+        run: |
+          pip install -U poetry
+          poetry config virtualenvs.create false
+
+      - name: Install package
+        run: poetry install
+
+      - name: Test
+        run: pytest --color=yes

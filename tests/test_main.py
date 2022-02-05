@@ -10,7 +10,7 @@ def driver():
     if sys.platform == "darwin":
         return "coreaudio"
     elif sys.platform == "linux":
-        return "alsa"
+        return "dummy"
 
 
 def test_simple(driver: str):
