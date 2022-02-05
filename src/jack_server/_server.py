@@ -127,11 +127,12 @@ class ServerNotOpenedError(RuntimeError):
 
 class Server:
     ptr: Any
+    params: dict[bytes, Parameter]
+    driver: Driver
     _created: bool
     _opened: bool
     _started: bool
-    params: dict[bytes, Parameter]
-    driver: Driver
+    _dont_garbage_collect: list[Any]
 
     def __init__(
         self,
@@ -144,6 +145,7 @@ class Server:
         self._created = False
         self._opened = False
         self._started = False
+        self._dont_garbage_collect = []
 
         self._create()
 
@@ -166,9 +168,9 @@ class Server:
         on_device_reservation_loop: Callable[[], None] | None = None,
     ) -> None:
         if not on_device_acquire:
-            on_device_acquire = lambda m: True
+            on_device_acquire = lambda _: True
         if not on_device_release:
-            on_device_release = lambda m: None
+            on_device_release = lambda _: None
         if not on_device_reservation_loop:
             on_device_reservation_loop = lambda: None
 
@@ -179,7 +181,7 @@ class Server:
         )
 
         args = (c_on_device_acquire, c_on_device_release, c_on_device_reservation_loop)
-        _dont_garbage_collect.extend(args)
+        self._dont_garbage_collect.extend(args)
 
         self.ptr = lib.jackctl_server_create2(*args)
         self._created = True
@@ -233,9 +235,7 @@ class Server:
         self.params[b"sync"].value = sync
 
 
-_dont_garbage_collect: list[
-    Any
-] = []  # TODO :make Server callbacks keep alive per instance
+_dont_garbage_collect: list[Any] = []
 
 
 def _wrap_error_or_info_callback(
