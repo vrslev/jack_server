@@ -151,9 +151,7 @@ class Server:
         self._dont_garbage_collect = []
 
         self._create()
-
-        params_jslist = lib.jackctl_server_get_parameters(self.ptr)
-        self.params = _get_params_from_js_list(params_jslist)
+        self._set_params()
 
         self.driver = self.get_driver_by_name(driver)
 
@@ -223,6 +221,10 @@ class Server:
 
     def __del__(self) -> None:
         self._destroy()
+
+    def _set_params(self) -> None:
+        jslist = lib.jackctl_server_get_parameters(self.ptr)
+        self.params = _get_params_from_js_list(jslist)
 
     def get_driver_by_name(self, name: str) -> Driver:
         driver_jslist = lib.jackctl_server_get_drivers_list(self.ptr)
