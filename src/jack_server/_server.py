@@ -35,8 +35,8 @@ class Parameter:
         self.type = lib.jackctl_parameter_get_type(self.ptr)
 
     @property
-    def name(self) -> bytes:
-        return lib.jackctl_parameter_get_name(self.ptr)
+    def name(self) -> str:
+        return lib.jackctl_parameter_get_name(self.ptr).decode()
 
     @property
     def value(self) -> int | str | bytes | bool:
@@ -87,11 +87,11 @@ class Parameter:
         lib.jackctl_parameter_set_value(self.ptr, pointer(val_obj))
 
     def __repr__(self) -> str:
-        return f"<jack_server.Parameter name={self.name.decode()!r} value={self.value}>"
+        return f"<jack_server.Parameter name={self.name!r} value={self.value}>"
 
 
-def _get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[bytes, Parameter]:
-    params: dict[bytes, Parameter] = {}
+def _get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[str, Parameter]:
+    params: dict[str, Parameter] = {}
 
     for ptr in iter_jslist(jslist, POINTER(lib.jackctl_parameter_t)):
         param = Parameter(ptr)
@@ -105,7 +105,7 @@ SampleRate = Literal[44100, 48000]
 
 class Driver:
     ptr: pointer[lib.jackctl_driver_t]
-    params: dict[bytes, Parameter]
+    params: dict[str, Parameter]
 
     def __init__(self, ptr: pointer[lib.jackctl_driver_t]) -> None:
         self.ptr = ptr
@@ -120,10 +120,10 @@ class Driver:
         return lib.jackctl_driver_get_name(self.ptr).decode()
 
     def set_device(self, name: str) -> None:
-        self.params[b"device"].value = name.encode()
+        self.params["device"].value = name.encode()
 
     def set_rate(self, rate: SampleRate) -> None:
-        self.params[b"rate"].value = rate
+        self.params["rate"].value = rate
 
     def __repr__(self) -> str:
         return f"<jack_server.Driver name={self.name}>"
@@ -139,7 +139,7 @@ class ServerNotOpenedError(RuntimeError):
 
 class Server:
     ptr: pointer[lib.jackctl_server_t]
-    params: dict[bytes, Parameter]
+    params: dict[str, Parameter]
     driver: Driver
     _created: bool
     _opened: bool
@@ -246,7 +246,7 @@ class Server:
         raise RuntimeError(f"Driver not found: {name}")  # TODO: Custom error
 
     def set_sync(self, sync: bool) -> None:
-        self.params[b"sync"].value = sync
+        self.params["sync"].value = sync
 
     def __repr__(self) -> str:
         return f"<jack_server.Server driver={self.driver.name} started={self._started}>"
