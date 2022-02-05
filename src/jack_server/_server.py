@@ -137,7 +137,7 @@ class Server:
         self,
         *,
         driver: str,
-        device: str,
+        device: str | None = None,
         rate: SampleRate | None = None,
         sync: bool = False,
     ) -> None:
@@ -154,8 +154,9 @@ class Server:
         self.params = _get_params_dict(params_jslist)
 
         self.driver = self.get_driver_by_name(driver)
-        self.driver.set_device(device)  # TODO: Allow not to set device
 
+        if device:
+            self.driver.set_device(device)
         if rate:
             self.driver.set_rate(rate)
         if sync:
