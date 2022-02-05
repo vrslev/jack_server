@@ -141,6 +141,10 @@ class ServerNotOpenedError(JackServerError):
     pass
 
 
+class DriverNotFoundError(JackServerError):
+    pass
+
+
 class Server:
     ptr: pointer[lib.jackctl_server_t]
     params: dict[str, Parameter]
@@ -247,7 +251,7 @@ class Server:
             if driver.name == name:
                 return driver
 
-        raise RuntimeError(f"Driver not found: {name}")  # TODO: Custom error
+        raise DriverNotFoundError(f"Driver not found: {name}")
 
     def set_sync(self, sync: bool) -> None:
         self.params["sync"].value = sync
