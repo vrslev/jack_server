@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ctypes import POINTER, c_void_p, cast, pointer
+from functools import wraps
 from typing import Any, Callable, Literal
 
 import jack_server._lib as lib
@@ -83,17 +84,17 @@ class Parameter:
         return f"<jack_server.Parameter value={self.value}>"
 
 
-SampleRate = Literal[44100, 48000]
-
-
-def _get_params_dict(params_jslist: Any) -> dict[bytes, Parameter]:
+def _get_params_from_js_list(params_jslist: Any) -> dict[bytes, Parameter]:
     params: dict[bytes, Parameter] = {}
 
-    for param_ptr in JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
-        param = Parameter(param_ptr)
+    for ptr in JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
+        param = Parameter(ptr)
         params[param.name] = param
 
     return params
+
+
+SampleRate = Literal[44100, 48000]
 
 
 class Driver:
@@ -102,9 +103,11 @@ class Driver:
 
     def __init__(self, ptr: Any) -> None:
         self.ptr = ptr
+        self._set_params()
 
+    def _set_params(self) -> None:
         params_jslist = lib.jackctl_driver_get_parameters(self.ptr)
-        self.params = _get_params_dict(params_jslist)
+        self.params = _get_params_from_js_list(params_jslist)
 
     @property
     def name(self) -> str:
@@ -150,7 +153,7 @@ class Server:
         self._create()
 
         params_jslist = lib.jackctl_server_get_parameters(self.ptr)
-        self.params = _get_params_dict(params_jslist)
+        self.params = _get_params_from_js_list(params_jslist)
 
         self.driver = self.get_driver_by_name(driver)
 
@@ -243,6 +246,7 @@ def _wrap_error_or_info_callback(
 ) -> lib.PrintFunction:
     if callback:
 
+        @wraps(callback)
         def wrapped_callback(message: bytes):
             callback(message.decode())
 
@@ -251,9 +255,9 @@ def _wrap_error_or_info_callback(
         def wrapped_callback(message: bytes):
             pass
 
-    cb = lib.PrintFunction(wrapped_callback)
-    _dont_garbage_collect.append(cb)
-    return cb
+    c_callback = lib.PrintFunction(wrapped_callback)
+    _dont_garbage_collect.append(c_callback)
+    return c_callback
 
 
 def set_info_function(callback: Callable[[str], None] | None) -> None:
