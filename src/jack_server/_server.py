@@ -172,11 +172,16 @@ class Server:
         if not on_device_reservation_loop:
             on_device_reservation_loop = lambda: None
 
-        self.ptr = lib.jackctl_server_create2(
-            lib.OnDeviceAcquire(on_device_acquire),
-            lib.OnDeviceRelease(on_device_release),
-            lib.OnDeviceReservationLoop(on_device_reservation_loop),
+        c_on_device_acquire = lib.OnDeviceAcquire(on_device_acquire)
+        c_on_device_release = lib.OnDeviceRelease(on_device_release)
+        c_on_device_reservation_loop = lib.OnDeviceReservationLoop(
+            on_device_reservation_loop
         )
+
+        args = (c_on_device_acquire, c_on_device_release, c_on_device_reservation_loop)
+        _dont_garbage_collect.extend(args)
+
+        self.ptr = lib.jackctl_server_create2(*args)
         self._created = True
 
     def _open(self) -> None:
@@ -228,7 +233,9 @@ class Server:
         self.params[b"sync"].value = sync
 
 
-_dont_garbage_collect: list[Any] = []
+_dont_garbage_collect: list[
+    Any
+] = []  # TODO :make Server callbacks keep alive per instance
 
 
 def _wrap_error_or_info_callback(
