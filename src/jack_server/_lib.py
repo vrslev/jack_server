@@ -35,6 +35,9 @@ JSList._fields_ = [("data", c_void_p), ("next", POINTER(JSList))]
 
 
 class JSIter:
+    ptr: Any
+    type: Any
+
     def __init__(self, ptr: Any, type_: Any = c_void_p) -> None:
         self.ptr = ptr
         self.type = type_
@@ -42,7 +45,7 @@ class JSIter:
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> Any:
         if not self.ptr:
             raise StopIteration
 

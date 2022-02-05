@@ -7,6 +7,9 @@ import jack_server._lib as lib
 
 
 class Parameter:
+    ptr: Any
+    type: Literal[1, 2, 3, 4, 5]
+
     def __init__(self, ptr: Any) -> None:
         self.ptr = ptr
         self.type = lib.jackctl_parameter_get_type(self.ptr)
@@ -74,6 +77,9 @@ def _get_params_dict(params_jslist: Any) -> dict[bytes, Parameter]:
 
 
 class Driver:
+    ptr: Any
+    params: dict[bytes, Parameter]
+
     def __init__(self, ptr: Any) -> None:
         self.ptr = ptr
 
@@ -100,6 +106,13 @@ class ServerNotOpenedError(RuntimeError):
 
 
 class Server:
+    ptr: Any
+    _created: bool
+    _opened: bool
+    _started: bool
+    params: dict[bytes, Parameter]
+    driver: Driver
+
     def __init__(
         self,
         *,
@@ -109,7 +122,7 @@ class Server:
         sync: bool = False,
     ) -> None:
         self.ptr = lib.jackctl_server_create(
-            lib.DeviceAcquireFunc(),  # type: ignore
+            lib.DeviceAcquireFunc(),  # type: ignore # TODO: Is this right?
             lib.DeviceReleaseFunc(),  # type: ignore
             lib.DeviceReservationLoop(),  # type: ignore
         )
@@ -121,7 +134,7 @@ class Server:
         self.params = _get_params_dict(params_jslist)
 
         self.driver = self.get_driver_by_name(driver)
-        self.driver.set_device(device)
+        self.driver.set_device(device)  # TODO: Allow not to set device
 
         if rate:
             self.driver.set_rate(rate)
