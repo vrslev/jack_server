@@ -11,7 +11,6 @@ from ctypes import (
     c_int,
     c_uint,
     c_void_p,
-    cast,
 )
 from ctypes.util import find_library
 from typing import Any, Callable, Literal
@@ -32,26 +31,6 @@ class JSList(Structure):
 
 
 JSList._fields_ = [("data", c_void_p), ("next", POINTER(JSList))]
-
-
-class JSIter:
-    ptr: Any
-    type: Any
-
-    def __init__(self, ptr: Any, type_: Any = c_void_p) -> None:
-        self.ptr = ptr
-        self.type = type_
-
-    def __iter__(self):
-        return self
-
-    def __next__(self) -> Any:
-        if not self.ptr:
-            raise StopIteration
-
-        retval = self.ptr.contents.data
-        self.ptr = self.ptr.contents.next
-        return cast(retval, self.type)
 
 
 class jackctl_parameter_t(Structure):

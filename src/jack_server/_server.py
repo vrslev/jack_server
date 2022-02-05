@@ -1,9 +1,29 @@
 from __future__ import annotations
 
-from ctypes import POINTER, pointer
+from ctypes import POINTER, c_void_p, cast, pointer
 from typing import Any, Callable, Literal
 
 import jack_server._lib as lib
+
+
+class JSIter:
+    ptr: Any
+    type: Any
+
+    def __init__(self, ptr: Any, type_: Any = c_void_p) -> None:
+        self.ptr = ptr
+        self.type = type_
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Any:
+        if not self.ptr:
+            raise StopIteration
+
+        retval = self.ptr.contents.data
+        self.ptr = self.ptr.contents.next
+        return cast(retval, self.type)
 
 
 class Parameter:
@@ -69,7 +89,7 @@ SampleRate = Literal[44100, 48000]
 def _get_params_dict(params_jslist: Any) -> dict[bytes, Parameter]:
     params: dict[bytes, Parameter] = {}
 
-    for param_ptr in lib.JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
+    for param_ptr in JSIter(params_jslist, POINTER(lib.jackctl_parameter_t)):
         param = Parameter(param_ptr)
         params[param.name] = param
 
@@ -144,7 +164,7 @@ class Server:
     def get_driver_by_name(self, name: str) -> Driver:
         driver_jslist = lib.jackctl_server_get_drivers_list(self.ptr)
 
-        for ptr in lib.JSIter(driver_jslist, POINTER(lib.jackctl_driver_t)):
+        for ptr in JSIter(driver_jslist, POINTER(lib.jackctl_driver_t)):
             driver = Driver(ptr)
             if driver.name == name:
                 return driver
