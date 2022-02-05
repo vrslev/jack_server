@@ -87,7 +87,7 @@ class Parameter:
         lib.jackctl_parameter_set_value(self.ptr, pointer(val_obj))
 
     def __repr__(self) -> str:
-        return f"<jack_server.Parameter value={self.value}>"
+        return f"<jack_server.Parameter name={self.name.decode()!r} value={self.value}>"
 
 
 def _get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[bytes, Parameter]:
@@ -124,6 +124,9 @@ class Driver:
 
     def set_rate(self, rate: SampleRate) -> None:
         self.params[b"rate"].value = rate
+
+    def __repr__(self) -> str:
+        return f"<jack_server.Driver name={self.name}>"
 
 
 class ServerNotStartedError(RuntimeError):  # TODO: Add base jackservererror
@@ -244,6 +247,9 @@ class Server:
 
     def set_sync(self, sync: bool) -> None:
         self.params[b"sync"].value = sync
+
+    def __repr__(self) -> str:
+        return f"<jack_server.Server driver={self.driver.name} started={self._started}>"
 
 
 _dont_garbage_collect: list[object] = []
