@@ -115,15 +115,15 @@ DeviceAcquireFunc = CFUNCTYPE(c_bool, c_char_p)
 DeviceReleaseFunc = CFUNCTYPE(None, c_char_p)
 DeviceReservationLoop = CFUNCTYPE(None)
 
-jackctl_server_create: Callable[
+jackctl_server_create2: Callable[
     [Callable[..., Any], Callable[..., Any], Callable[..., Any]], Any
 ] = lib.jackctl_server_create2
-jackctl_server_create.argtypes = [
+jackctl_server_create2.argtypes = [
     DeviceAcquireFunc,
     DeviceReleaseFunc,
     DeviceReservationLoop,
 ]
-jackctl_server_create.restype = POINTER(jackctl_server_t)
+jackctl_server_create2.restype = POINTER(jackctl_server_t)
 
 jackctl_server_stop: Callable[[Any], bool] = lib.jackctl_server_stop
 jackctl_server_stop.argtypes = [POINTER(jackctl_server_t)]

@@ -141,7 +141,7 @@ class Server:
         rate: SampleRate | None = None,
         sync: bool = False,
     ) -> None:
-        self.ptr = lib.jackctl_server_create(
+        self.ptr = lib.jackctl_server_create2(
             lib.DeviceAcquireFunc(),  # type: ignore # TODO: Is this right?
             lib.DeviceReleaseFunc(),  # type: ignore
             lib.DeviceReservationLoop(),  # type: ignore
