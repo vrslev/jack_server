@@ -28,6 +28,7 @@ class DriverNotFoundError(JackServerError):
 class Server:
     ptr: pointer[lib.jackctl_server_t]
     params: dict[str, Parameter]
+    available_drivers: list[Driver]
     driver: Driver
     _created: bool
     _opened: bool
@@ -48,7 +49,9 @@ class Server:
         self._dont_garbage_collect = []
 
         self._create()
+
         self._set_params()
+        self._set_available_drivers()
 
         self.driver = self.get_driver_by_name(driver)
 
@@ -123,11 +126,13 @@ class Server:
         jslist = lib.jackctl_server_get_parameters(self.ptr)
         self.params = get_params_from_jslist(jslist)
 
-    def get_driver_by_name(self, name: str) -> Driver:
+    def _set_available_drivers(self) -> None:
         jslist = lib.jackctl_server_get_drivers_list(self.ptr)
+        iterator = iterate_over_jslist(jslist, POINTER(lib.jackctl_driver_t))
+        self.available_drivers = [Driver(ptr) for ptr in iterator]
 
-        for ptr in iterate_over_jslist(jslist, POINTER(lib.jackctl_driver_t)):
-            driver = Driver(ptr)
+    def get_driver_by_name(self, name: str) -> Driver:
+        for driver in self.available_drivers:
             if driver.name == name:
                 return driver
 
