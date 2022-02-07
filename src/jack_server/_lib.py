@@ -87,8 +87,20 @@ jackctl_parameter_get_value.argtypes = [POINTER(jackctl_parameter_t)]
 jackctl_parameter_get_value.restype = jackctl_parameter_value
 
 
-class jackctl_driver_t(Structure):
+class jack_driver_desc_t(Structure):
     pass
+
+
+class jackctl_driver_t(Structure):
+    _fields_ = [
+        ("desc_ptr", POINTER(jack_driver_desc_t)),
+        ("parameters", POINTER(JSList)),
+        ("infos", POINTER(JSList)),
+    ]
+
+    desc_ptr: "pointer[jack_driver_desc_t]"
+    parameters: "pointer[JSList]"
+    infos: "pointer[JSList]"
 
 
 jackctl_driver_get_parameters: Callable[
@@ -102,6 +114,31 @@ jackctl_driver_get_name: Callable[
 ] = lib.jackctl_driver_get_name
 jackctl_driver_get_name.argtypes = [POINTER(jackctl_driver_t)]
 jackctl_driver_get_name.restype = c_char_p
+
+
+class jackctl_internal_t(Structure):
+    _fields_ = [
+        ("desc_ptr", POINTER(jack_driver_desc_t)),
+        ("parameters", POINTER(JSList)),
+        ("refnum", c_int),
+    ]
+
+    desc_ptr: "pointer[jack_driver_desc_t]"
+    parameters: "pointer[JSList]"
+    refnum: int
+
+
+jackctl_internal_get_name: Callable[
+    ["pointer[jackctl_internal_t]"], bytes
+] = lib.jackctl_internal_get_name
+jackctl_internal_get_name.argtypes = [POINTER(jackctl_internal_t)]
+jackctl_internal_get_name.restype = c_char_p
+
+jackctl_internal_get_parameters: Callable[
+    ["pointer[jackctl_internal_t]"], "pointer[JSList]"
+] = lib.jackctl_internal_get_parameters
+jackctl_internal_get_parameters.argtypes = [POINTER(jackctl_internal_t)]
+jackctl_internal_get_parameters.restype = POINTER(JSList)
 
 
 class jackctl_server_t(Structure):
@@ -164,6 +201,21 @@ jackctl_server_get_drivers_list: Callable[
 ] = lib.jackctl_server_get_drivers_list
 jackctl_server_get_drivers_list.argtypes = [POINTER(jackctl_server_t)]
 jackctl_server_get_drivers_list.restype = POINTER(JSList)
+
+jackctl_server_get_internals_list: Callable[
+    ["pointer[jackctl_server_t]"], "pointer[JSList]"
+] = lib.jackctl_server_get_internals_list
+jackctl_server_get_internals_list.argtypes = [POINTER(jackctl_server_t)]
+jackctl_server_get_internals_list.restype = POINTER(JSList)
+
+jackctl_server_load_internal: Callable[
+    ["pointer[jackctl_server_t]", "pointer[jackctl_internal_t]"], bool
+] = lib.jackctl_server_load_internal
+jackctl_server_load_internal.argtypes = [
+    POINTER(jackctl_server_t),
+    POINTER(jackctl_internal_t),
+]
+jackctl_server_load_internal.restype = c_bool
 
 
 PrintFunction = CFUNCTYPE(None, c_char_p)

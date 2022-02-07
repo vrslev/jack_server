@@ -20,7 +20,9 @@ class Parameter:
         return lib.jackctl_parameter_get_name(self.ptr).decode()
 
     @property
-    def value(self) -> int | str | bytes | bool:
+    def value(
+        self,
+    ) -> int | str | bytes | bool:  # TODO: ValueType = int | str | bytes | bool
         val = lib.jackctl_parameter_get_value(self.ptr)
 
         if self.type == 1:
@@ -53,11 +55,11 @@ class Parameter:
             val_obj.ui = int(val)
         elif self.type == 3:
             # JackParamChar
-            assert isinstance(val, str) and len(val) == 1
+            assert isinstance(val, str) and len(val) == 1, (self.name, val)
             val_obj.c = val
         elif self.type == 4:
             # JackParamString
-            assert isinstance(val, bytes)
+            assert isinstance(val, bytes), (self.name, val)
             val_obj.ss = val
         elif self.type == 5:
             # JackParamBool
