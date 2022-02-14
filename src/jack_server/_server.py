@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ctypes import POINTER, pointer
 from typing import Callable, Literal, cast
 
 import jack_server._lib as lib
@@ -34,7 +33,7 @@ SetByJack_: SetByJack = SetByJack()
 
 
 class Server:
-    ptr: pointer[lib.jackctl_server_t]
+    ptr: lib.jackctl_server_t_p
     params: dict[str, Parameter]
     available_drivers: list[Driver]
     driver: Driver
@@ -141,7 +140,7 @@ class Server:
 
     def _init_available_drivers(self) -> None:
         jslist = lib.jackctl_server_get_drivers_list(self.ptr)
-        iterator = iterate_over_jslist(jslist, POINTER(lib.jackctl_driver_t))
+        iterator = iterate_over_jslist(jslist, lib.jackctl_driver_t_p)
         self.available_drivers = [Driver(ptr) for ptr in iterator]
 
     def get_driver_by_name(self, name: str) -> Driver:
