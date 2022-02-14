@@ -120,8 +120,9 @@ class Server:
             self._started = False
 
     def _destroy(self) -> None:
-        if self._created:  # TODO: Set self._created = False
+        if self._created:
             lib.jackctl_server_destroy(self.ptr)
+            self._created = False
 
     def start(self) -> None:
         self._open()
