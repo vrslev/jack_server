@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import POINTER, pointer
-from typing import Callable
+from typing import Callable, Literal, cast
 
 import jack_server._lib as lib
 from jack_server._driver import Driver, SampleRate
@@ -25,6 +25,14 @@ class DriverNotFoundError(JackServerError):
     pass
 
 
+class SetByJack:
+    def __bool__(self) -> Literal[False]:
+        return False
+
+
+SetByJack_: SetByJack = SetByJack()
+
+
 class Server:
     ptr: pointer[lib.jackctl_server_t]
     params: dict[str, Parameter]
@@ -38,10 +46,12 @@ class Server:
     def __init__(
         self,
         *,
+        name: str | SetByJack = SetByJack_,
         driver: str,
-        device: str | None = None,
-        rate: SampleRate | None = None,
-        sync: bool = False,
+        device: str | SetByJack = SetByJack_,
+        rate: SampleRate | SetByJack = SetByJack_,
+        period: int | SetByJack = SetByJack_,
+        sync: bool | SetByJack = SetByJack_,
     ) -> None:
         self._created = False
         self._opened = False
@@ -49,18 +59,21 @@ class Server:
         self._dont_garbage_collect = []
 
         self._create()
-
-        self._set_params()
-        self._set_available_drivers()
+        self._init_params()
+        self._init_available_drivers()
 
         self.driver = self.get_driver_by_name(driver)
 
+        if name:
+            self.name = name
         if device:
-            self.driver.set_device(device)
+            self.driver.device = device
         if rate:
-            self.driver.set_rate(rate)
+            self.driver.rate = rate
+        if period:
+            self.driver.period = period
         if sync:
-            self.set_sync(sync)
+            self.sync = sync
 
     def _create(
         self,
@@ -97,10 +110,6 @@ class Server:
         if not self._started:
             raise ServerNotStartedError("Server couldn't be started")
 
-    def start(self) -> None:
-        self._open()
-        self._start()
-
     def _close(self) -> None:
         if self._opened:
             lib.jackctl_server_close(self.ptr)
@@ -111,22 +120,26 @@ class Server:
             lib.jackctl_server_stop(self.ptr)
             self._started = False
 
+    def _destroy(self) -> None:
+        if self._created:  # TODO: Set self._created = False
+            lib.jackctl_server_destroy(self.ptr)
+
+    def start(self) -> None:
+        self._open()
+        self._start()
+
     def stop(self) -> None:
         self._stop()
         self._close()
 
-    def _destroy(self) -> None:
-        if self._created:
-            lib.jackctl_server_destroy(self.ptr)
-
     def __del__(self) -> None:
         self._destroy()
 
-    def _set_params(self) -> None:
+    def _init_params(self) -> None:
         jslist = lib.jackctl_server_get_parameters(self.ptr)
         self.params = get_params_from_jslist(jslist)
 
-    def _set_available_drivers(self) -> None:
+    def _init_available_drivers(self) -> None:
         jslist = lib.jackctl_server_get_drivers_list(self.ptr)
         iterator = iterate_over_jslist(jslist, POINTER(lib.jackctl_driver_t))
         self.available_drivers = [Driver(ptr) for ptr in iterator]
@@ -138,8 +151,21 @@ class Server:
 
         raise DriverNotFoundError(f"Driver not found: {name}")
 
-    def set_sync(self, sync: bool) -> None:
-        self.params["sync"].value = sync
+    @property
+    def name(self) -> str:
+        return cast(bytes, self.params["name"].value).decode()
+
+    @name.setter
+    def name(self, __value: str) -> None:
+        self.params["name"].value = __value.encode()
+
+    @property
+    def sync(self) -> bool:
+        return cast(bool, self.params["sync"].value)
+
+    @sync.setter
+    def sync(self, __value: bool) -> None:
+        self.params["sync"].value = __value
 
     def __repr__(self) -> str:
         return f"<jack_server.Server driver={self.driver.name} started={self._started}>"
