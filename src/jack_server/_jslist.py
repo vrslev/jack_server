@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import c_void_p, cast, pointer
-from typing import TYPE_CHECKING, Generator, TypeVar
+from typing import TYPE_CHECKING, Iterable, TypeVar
 
 import jack_server._lib as lib
 
@@ -12,15 +12,11 @@ if TYPE_CHECKING:
 
 
 def iterate_over_jslist(
-    ptr: pointer[lib.JSList], type_: type[_T] = c_void_p
-) -> Generator[_T, None, None]:
+    ptr: pointer[lib.JSList], type: type[_T] = c_void_p
+) -> Iterable[_T]:
     cur_ptr = ptr
 
-    while True:
-        if not cur_ptr:
-            return
-
+    while cur_ptr:
         data = cur_ptr.contents.data
         cur_ptr = cur_ptr.contents.next
-
-        yield cast(data, type_)
+        yield cast(data, type)
