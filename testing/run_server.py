@@ -1,14 +1,17 @@
 import time
 
-from jack_server import Server, set_error_function, set_info_function
+import jack_server
 
-server = Server(
-    driver="coreaudio", device="BuiltInSpeakerDevice", sync=True, period=1024
+server = jack_server.Server(
+    driver="coreaudio",
+    device="BuiltInSpeakerDevice",
+    period=1024,
+    sync=True,
 )
 server.start()
 
 time.sleep(0.5)
 
-set_error_function(lambda s: None)
-set_info_function(lambda s: None)
+jack_server.set_error_function(None)
+jack_server.set_info_function(None)
 server.stop()
