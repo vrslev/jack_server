@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     _T = TypeVar("_T", bound=_CanCastTo)
 
 
-def iterate_over_jslist(ptr: lib.JSList_p, type: type[_T] = c_void_p) -> Iterable[_T]:
+def iterate_jslist(ptr: lib.JSList_p, type: type[_T] = c_void_p) -> Iterable[_T]:
     cur_ptr = ptr
 
     while cur_ptr:

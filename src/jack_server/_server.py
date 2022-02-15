@@ -4,7 +4,7 @@ from typing import Callable, Literal, cast
 
 import jack_server._lib as lib
 from jack_server._driver import Driver, SampleRate
-from jack_server._jslist import iterate_over_jslist
+from jack_server._jslist import iterate_jslist
 from jack_server._parameter import Parameter, get_params_from_jslist
 
 
@@ -138,7 +138,7 @@ class Server:
 
     def get_driver_by_name(self, name: str) -> Driver:
         jslist = lib.jackctl_server_get_drivers_list(self._ptr)
-        for ptr in iterate_over_jslist(jslist, lib.jackctl_driver_t_p):
+        for ptr in iterate_jslist(jslist, lib.jackctl_driver_t_p):
             driver = Driver(ptr)
             if driver.name == name:
                 return driver
