@@ -11,11 +11,9 @@ pip install jack_server
 ## Usage
 
 ```python
-import time
+import jack_server
 
-from jack_server import Server
-
-server = Server(
+server = jack_server.Server(
     driver="coreaudio",
     device="BuiltInSpeakerDevice",
     rate=48000,
@@ -23,6 +21,5 @@ server = Server(
 )
 server.start()
 
-while True:
-    time.sleep(1)
+input()
 ```
