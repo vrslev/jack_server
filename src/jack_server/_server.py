@@ -33,10 +33,9 @@ SetByJack_: SetByJack = SetByJack()
 
 
 class Server:
-    ptr: lib.jackctl_server_t_p
-    params: dict[str, Parameter]
-    available_drivers: list[Driver]
     driver: Driver
+    params: dict[str, Parameter]
+    ptr: lib.jackctl_server_t_p  # TODO: Make `ptr` private
     _created: bool
     _opened: bool
     _started: bool
@@ -59,8 +58,6 @@ class Server:
 
         self._create()
         self._init_params()
-        self._init_available_drivers()
-
         self.driver = self.get_driver_by_name(driver)
 
         if name:
@@ -139,13 +136,10 @@ class Server:
         jslist = lib.jackctl_server_get_parameters(self.ptr)
         self.params = get_params_from_jslist(jslist)
 
-    def _init_available_drivers(self) -> None:
-        jslist = lib.jackctl_server_get_drivers_list(self.ptr)
-        iterator = iterate_over_jslist(jslist, lib.jackctl_driver_t_p)
-        self.available_drivers = [Driver(ptr) for ptr in iterator]
-
     def get_driver_by_name(self, name: str) -> Driver:
-        for driver in self.available_drivers:
+        jslist = lib.jackctl_server_get_drivers_list(self.ptr)
+        for ptr in iterate_over_jslist(jslist, lib.jackctl_driver_t_p):
+            driver = Driver(ptr)
             if driver.name == name:
                 return driver
 
