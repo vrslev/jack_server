@@ -8,20 +8,20 @@ from jack_server._jslist import iterate_over_jslist
 
 
 class Parameter:
-    ptr: lib.jackctl_parameter_t_p
+    _ptr: lib.jackctl_parameter_t_p
     type: Literal[1, 2, 3, 4, 5]
 
     def __init__(self, ptr: lib.jackctl_parameter_t_p) -> None:
-        self.ptr = ptr
-        self.type = lib.jackctl_parameter_get_type(self.ptr)
+        self._ptr = ptr
+        self.type = lib.jackctl_parameter_get_type(self._ptr)
 
     @property
     def name(self) -> str:
-        return lib.jackctl_parameter_get_name(self.ptr).decode()
+        return lib.jackctl_parameter_get_name(self._ptr).decode()
 
     @property
     def value(self) -> int | str | bytes | bool:
-        val = lib.jackctl_parameter_get_value(self.ptr)
+        val = lib.jackctl_parameter_get_value(self._ptr)
 
         if self.type == 1:
             # JackParamInt
@@ -65,7 +65,7 @@ class Parameter:
         else:
             raise NotImplementedError
 
-        lib.jackctl_parameter_set_value(self.ptr, pointer(val_obj))
+        lib.jackctl_parameter_set_value(self._ptr, pointer(val_obj))
 
     def __repr__(self) -> str:
         return f"<jack_server.Parameter name={self.name!r} value={self.value}>"

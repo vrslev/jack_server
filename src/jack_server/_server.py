@@ -35,7 +35,7 @@ SetByJack_: SetByJack = SetByJack()
 class Server:
     driver: Driver
     params: dict[str, Parameter]
-    ptr: lib.jackctl_server_t_p  # TODO: Make `ptr` private
+    _ptr: lib.jackctl_server_t_p  # TODO: Make `ptr` private
     _created: bool
     _opened: bool
     _started: bool
@@ -93,32 +93,32 @@ class Server:
         args = (c_on_device_acquire, c_on_device_release, c_on_device_reservation_loop)
         self._dont_garbage_collect.extend(args)
 
-        self.ptr = lib.jackctl_server_create2(*args)
+        self._ptr = lib.jackctl_server_create2(*args)
         self._created = True
 
     def _open(self) -> None:
-        self._opened = lib.jackctl_server_open(self.ptr, self.driver.ptr)
+        self._opened = lib.jackctl_server_open(self._ptr, self.driver._ptr)
         if not self._opened:
             raise ServerNotOpenedError("Server couldn't be opened")
 
     def _start(self) -> None:
-        self._started = lib.jackctl_server_start(self.ptr)
+        self._started = lib.jackctl_server_start(self._ptr)
         if not self._started:
             raise ServerNotStartedError("Server couldn't be started")
 
     def _close(self) -> None:
         if self._opened:
-            lib.jackctl_server_close(self.ptr)
+            lib.jackctl_server_close(self._ptr)
             self._opened = False
 
     def _stop(self) -> None:
         if self._started:
-            lib.jackctl_server_stop(self.ptr)
+            lib.jackctl_server_stop(self._ptr)
             self._started = False
 
     def _destroy(self) -> None:
         if self._created:
-            lib.jackctl_server_destroy(self.ptr)
+            lib.jackctl_server_destroy(self._ptr)
             self._created = False
 
     def start(self) -> None:
@@ -133,11 +133,11 @@ class Server:
         self._destroy()
 
     def _init_params(self) -> None:
-        jslist = lib.jackctl_server_get_parameters(self.ptr)
+        jslist = lib.jackctl_server_get_parameters(self._ptr)
         self.params = get_params_from_jslist(jslist)
 
     def get_driver_by_name(self, name: str) -> Driver:
-        jslist = lib.jackctl_server_get_drivers_list(self.ptr)
+        jslist = lib.jackctl_server_get_drivers_list(self._ptr)
         for ptr in iterate_over_jslist(jslist, lib.jackctl_driver_t_p):
             driver = Driver(ptr)
             if driver.name == name:

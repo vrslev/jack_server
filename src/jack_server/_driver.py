@@ -9,20 +9,20 @@ SampleRate = Literal[44100, 48000]
 
 
 class Driver:
-    ptr: lib.jackctl_driver_t_p
+    _ptr: lib.jackctl_driver_t_p
     params: dict[str, Parameter]
 
     def __init__(self, ptr: lib.jackctl_driver_t_p) -> None:
-        self.ptr = ptr
+        self._ptr = ptr
         self._init_params()
 
     def _init_params(self) -> None:
-        params_jslist = lib.jackctl_driver_get_parameters(self.ptr)
+        params_jslist = lib.jackctl_driver_get_parameters(self._ptr)
         self.params = get_params_from_jslist(params_jslist)
 
     @property
     def name(self) -> str:
-        return lib.jackctl_driver_get_name(self.ptr).decode()
+        return lib.jackctl_driver_get_name(self._ptr).decode()
 
     @property
     def device(self) -> str:
