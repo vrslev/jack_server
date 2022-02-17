@@ -7,6 +7,8 @@ Can be used as replacement for [jackd](https://manpages.debian.org/buster/jackd2
 
 `pip install jack_server`
 
+Also you need to have `jackserver` library on your machine, it comes with [JACK2](https://github.com/jackaudio/jack2). I had problems with apt-package on Ubuntu (`jackd2`), if you do too, compile jack yourself.
+
 ## Usage
 
 ### `jack_server.Server`
