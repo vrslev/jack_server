@@ -1,5 +1,7 @@
 # vrslev/jack_server
 
+[![Test](https://github.com/vrslev/jack_server/actions/workflows/test.yml/badge.svg)](https://github.com/vrslev/jack_server/actions/workflows/test.yml)
+
 Control [JACK](https://jackaudio.org/) server with Python.
 Can be used as replacement for [jackd](https://manpages.debian.org/buster/jackd2/jackd.1.en.html) for more robust configuration, for example, when using [`jack`](https://github.com/spatialaudio/jackclient-python) package.
 
