@@ -114,6 +114,8 @@ jobs:
         run: pytest --color=yes --cov
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+        with:
+          install-dependencies: false
       - name: Upload coverage data
         uses: actions/upload-artifact@v2
         with:
