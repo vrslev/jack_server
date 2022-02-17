@@ -26,11 +26,11 @@ class Driver:
         return cast(bytes, lib.jackctl_driver_get_name(self._ptr)).decode()
 
     @property
-    def device(self) -> str:
+    def device(self) -> str:  # pragma: no cover
         return cast(bytes, self.params["device"].value).decode()
 
     @device.setter
-    def device(self, __value: str) -> None:
+    def device(self, __value: str) -> None:  # pragma: no cover
         self.params["device"].value = __value.encode()
 
     @property
