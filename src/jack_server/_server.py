@@ -35,7 +35,7 @@ SetByJack_: SetByJack = SetByJack()
 class Server:
     driver: Driver
     params: dict[str, Parameter]
-    _ptr: lib.jackctl_server_t_p  # TODO: Make `ptr` private
+    _ptr: lib.jackctl_server_t_p
     _created: bool
     _opened: bool
     _started: bool
