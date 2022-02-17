@@ -113,6 +113,13 @@ jobs:
       - name: Test
         run: pytest --color=yes
 
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-data
+          path: ".coverage.*"
+          if-no-files-found: ignore
+
   coverage: # https://hynek.me/articles/ditch-codecov-python/
     name: Combine & check coverage
     runs-on: ubuntu-latest
