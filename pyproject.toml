@@ -9,6 +9,7 @@ include = ["src/jack_server/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
@@ -34,3 +35,13 @@ profile = "black"
 
 [tool.pytest.ini_options]
 addopts = "-s"
+
+[tool.coverage.report]
+skip_covered = true
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "if sys.platform",
+]

@@ -19,15 +19,16 @@ if TYPE_CHECKING:
     from ctypes import _CData
 
 
-lib_name = find_library("libjackserver")
+def get_library_name():
+    lib_name = find_library("libjackserver")
+    if not lib_name:
+        lib_name = find_library("jackserver")
+    if not lib_name:
+        raise RuntimeError("Couldn't find jackserver library")
+    return lib_name
 
-if not lib_name:
-    lib_name = find_library("jackserver")
 
-if not lib_name:
-    raise RuntimeError("Couldn't find libjackserver")
-
-lib = CDLL(lib_name)
+lib = CDLL(get_library_name())
 
 
 class JSList(Structure):

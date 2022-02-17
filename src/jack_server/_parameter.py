@@ -22,7 +22,7 @@ class Parameter:
         return cast(bytes, lib.jackctl_parameter_get_name(self._ptr)).decode()
 
     @property
-    def value(self) -> ValueType:
+    def value(self) -> ValueType:  # pragma: no cover
         val = cast(
             lib.jackctl_parameter_value, lib.jackctl_parameter_get_value(self._ptr)
         )
@@ -46,7 +46,7 @@ class Parameter:
             raise NotImplementedError
 
     @value.setter
-    def value(self, val: ValueType) -> None:
+    def value(self, val: ValueType) -> None:  # pragma: no cover
         val_obj = lib.jackctl_parameter_value()
 
         if self.type == 1:

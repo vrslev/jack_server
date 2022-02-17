@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ctypes import pointer
-from typing import Callable, Literal, cast
+from typing import Callable, cast
 
 import jack_server._lib as lib
 from jack_server._driver import Driver, SampleRate
@@ -26,8 +26,7 @@ class DriverNotFoundError(JackServerError):
 
 
 class SetByJack:
-    def __bool__(self) -> Literal[False]:
-        return False
+    pass
 
 
 SetByJack_: SetByJack = SetByJack()
@@ -60,7 +59,7 @@ class Server:
 
         self._create()
         self._init_params()
-        self.driver = self.get_driver_by_name(driver)
+        self.driver = self._get_driver_by_name(driver)
 
         if not isinstance(name, SetByJack):
             self.name = name
@@ -69,7 +68,7 @@ class Server:
         if not isinstance(realtime, SetByJack):
             self.realtime = realtime
         if not isinstance(device, SetByJack):
-            self.driver.device = device
+            self.driver.device = device  # pragma: no cover (can't set driver on dummy driver that used in CI)
         if not isinstance(rate, SetByJack):
             self.driver.rate = rate
         if not isinstance(period, SetByJack):
@@ -140,7 +139,7 @@ class Server:
         jslist = lib.jackctl_server_get_parameters(self._ptr)
         self.params = get_params_from_jslist(jslist)
 
-    def get_driver_by_name(self, name: str) -> Driver:
+    def _get_driver_by_name(self, name: str) -> Driver:
         jslist = lib.jackctl_server_get_drivers_list(self._ptr)
         for ptr in iterate_jslist(jslist, lib.jackctl_driver_t_p):
             driver = Driver(ptr)
