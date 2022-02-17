@@ -18,10 +18,12 @@ import jack_server
 
 server = jack_server.Server(
     name="myfancyserver",
+    sync=True,
+    realtime=False,
     driver="coreaudio",
     device="BuiltInSpeakerDevice",
     rate=48000,
-    sync=True,
+    period=1024,
 )
 server.start()
 
@@ -31,13 +33,15 @@ input()
 They are actually an equivalent of `jackd` flags:
 
 - `-n`, `--name` to `name`,
+- `-S`, `--sync` to `sync`,
+- `-R`, `--realtime`, `-r`, `--no-realtime` to `realtime`,
 - `-d` to `driver`,
-- `-S`, `--sync` to `sync`
 
 And driver arguments:
 
 - `-d`, `--device` to `device`,
-- `-r`, `--rate` to `rate`.
+- `-r`, `--rate` to `rate`,
+- `-p`, `--period` to `period`,
 
 #### `start(self) -> None`
 
@@ -57,7 +61,11 @@ Actual server name. It is property that calls C code, so you can actually set th
 
 #### `sync: bool`
 
-Wherther JACK runs in sync mode. Useful when you`re trying to send and receive multichannel audio.
+Whether JACK runs in sync mode. Useful when you`re trying to send and receive multichannel audio.
+
+#### `realtime: bool`
+
+Whether JACK should start in realtime mode.
 
 #### `params: dict[str, jack_server.Parameter]`
 
