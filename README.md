@@ -1,5 +1,3 @@
-# vrslev/jack_server
-
 [![Test](https://github.com/vrslev/jack_server/actions/workflows/test.yml/badge.svg)](https://github.com/vrslev/jack_server/actions/workflows/test.yml)
 
 Control [JACK](https://jackaudio.org/) server with Python.
@@ -13,7 +11,7 @@ Also you need to have `jackserver` library on your machine, it comes with [JACK2
 
 ## Usage
 
-### `jack_server.Server`
+### 🎛 `jack_server.Server`
 
 On server creation you _can_ specify some parameters:
 
@@ -75,7 +73,7 @@ Whether JACK should start in realtime mode.
 
 Server parameters mapped by name.
 
-### `jack_server.Driver`
+### 💼 `jack_server.Driver`
 
 Driver (JACK backend), can be safely changed before server is started. Not supposed to be created by user code.
 
@@ -99,11 +97,11 @@ Buffer size.
 
 Driver parameters mapped by name.
 
-### `jack_server.SampleRate`
+### 📻 `jack_server.SampleRate`
 
 Valid sampling rate, `44100` or `48000`.
 
-### `jack_server.Parameter`
+### 🔻 `jack_server.Parameter`
 
 Not supposed to be created by user code.
 
@@ -115,10 +113,10 @@ Read-only verbose name of parameter.
 
 Value of the parameter, can be changed.
 
-### `jack_server.set_info_function(callback: Callable[[str], None] | None) -> None`
+### ❗️ `jack_server.set_info_function(callback: Callable[[str], None] | None) -> None`
 
 Set info output handler. By default JACK does is itself, i. e. output is being printed in stdout.
 
-### `set_error_function(callback: Callable[[str], None] | None) -> None`
+### ‼️ `jack_server.set_error_function(callback: Callable[[str], None] | None) -> None`
 
 Set error output handler. By default JACK does is itself, i. e. output is being printed in stderr.
