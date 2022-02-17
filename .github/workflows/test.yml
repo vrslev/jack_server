@@ -104,18 +104,15 @@ jobs:
           sudo ./waf install
 
       - name: Install Poetry
-        run: |
-          pip install -U poetry
-          poetry config virtualenvs.create false
+        run: pip install -U poetry
 
       - name: Install package
         run: poetry install
 
       - name: Test
         run: |
-          pytest --color=yes --cov
+          poetry run pytest --color=yes --cov
           mv .coverage ".coverage.${{ matrix.python-version }}"
-          ls -la
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v2
