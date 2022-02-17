@@ -46,12 +46,12 @@ class Server:
         self,
         *,
         name: str | SetByJack = SetByJack_,
+        sync: bool | SetByJack = SetByJack_,
+        realtime: bool | SetByJack = SetByJack_,  # TODO: Add docs
         driver: str,
         device: str | SetByJack = SetByJack_,
         rate: SampleRate | SetByJack = SetByJack_,
         period: int | SetByJack = SetByJack_,
-        sync: bool | SetByJack = SetByJack_,
-        realtime: bool | SetByJack = SetByJack_,  # TODO: Add docs
     ) -> None:
         self._created = False
         self._opened = False
@@ -64,16 +64,16 @@ class Server:
 
         if not isinstance(name, SetByJack):
             self.name = name
+        if not isinstance(sync, SetByJack):
+            self.sync = sync
+        if not isinstance(realtime, SetByJack):
+            self.realtime = realtime
         if not isinstance(device, SetByJack):
             self.driver.device = device
         if not isinstance(rate, SetByJack):
             self.driver.rate = rate
         if not isinstance(period, SetByJack):
             self.driver.period = period
-        if not isinstance(sync, SetByJack):
-            self.sync = sync
-        if not isinstance(realtime, SetByJack):
-            self.realtime = realtime
 
     def _create(
         self,

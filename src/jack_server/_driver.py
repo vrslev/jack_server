@@ -10,8 +10,8 @@ SampleRate = Literal[44100, 48000]
 
 
 class Driver:
-    _ptr: pointer[lib.jackctl_driver_t]
     params: dict[str, Parameter]
+    _ptr: pointer[lib.jackctl_driver_t]
 
     def __init__(self, ptr: pointer[lib.jackctl_driver_t]) -> None:
         self._ptr = ptr
