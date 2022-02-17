@@ -14,7 +14,7 @@ def driver():
 
 
 def test_simple(driver: str):
-    server = jack_server.Server(driver=driver, period=1024, sync=True)
+    server = jack_server.Server(driver=driver, period=1024, sync=True, realtime=False)
     server.start()
     assert server._created
     assert server._opened

@@ -6,7 +6,7 @@ on:
       - main
 
   pull_request:
-
+# TODO: Fix realtime scheduling issue
 jobs:
   lint:
     runs-on: ubuntu-latest
