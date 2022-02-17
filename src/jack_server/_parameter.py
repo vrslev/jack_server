@@ -1,27 +1,31 @@
 from __future__ import annotations
 
 from ctypes import pointer
-from typing import Literal
+from typing import Literal, Union, cast
 
 import jack_server._lib as lib
 from jack_server._jslist import iterate_jslist
 
+ValueType = Union[int, str, bytes, bool]
+
 
 class Parameter:
-    _ptr: lib.jackctl_parameter_t_p
+    _ptr: pointer[lib.jackctl_parameter_t]
     type: Literal[1, 2, 3, 4, 5]
 
-    def __init__(self, ptr: lib.jackctl_parameter_t_p) -> None:
+    def __init__(self, ptr: pointer[lib.jackctl_parameter_t]) -> None:
         self._ptr = ptr
         self.type = lib.jackctl_parameter_get_type(self._ptr)
 
     @property
     def name(self) -> str:
-        return lib.jackctl_parameter_get_name(self._ptr).decode()
+        return cast(bytes, lib.jackctl_parameter_get_name(self._ptr)).decode()
 
     @property
-    def value(self) -> int | str | bytes | bool:
-        val = lib.jackctl_parameter_get_value(self._ptr)
+    def value(self) -> ValueType:
+        val = cast(
+            lib.jackctl_parameter_value, lib.jackctl_parameter_get_value(self._ptr)
+        )
 
         if self.type == 1:
             # JackParamInt
@@ -42,7 +46,7 @@ class Parameter:
             raise NotImplementedError
 
     @value.setter
-    def value(self, val: int | str | bytes | bool) -> None:
+    def value(self, val: ValueType) -> None:
         val_obj = lib.jackctl_parameter_value()
 
         if self.type == 1:
@@ -68,10 +72,10 @@ class Parameter:
         lib.jackctl_parameter_set_value(self._ptr, pointer(val_obj))
 
     def __repr__(self) -> str:
-        return f"<jack_server.Parameter name={self.name!r} value={self.value}>"
+        return f"<jack_server.Parameter name={self.name!r} value={self.value!r}>"
 
 
-def get_params_from_jslist(jslist: lib.JSList_p) -> dict[str, Parameter]:
+def get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[str, Parameter]:
     params: dict[str, Parameter] = {}
 
     for ptr in iterate_jslist(jslist, lib.jackctl_parameter_t_p):

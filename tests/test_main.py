@@ -6,14 +6,14 @@ import jack_server
 
 
 @pytest.fixture
-def driver():
+def driver() -> str:
     if sys.platform == "darwin":
         return "coreaudio"
     elif sys.platform == "linux":
         return "dummy"
 
 
-def test_simple(driver: str):
+def test_simple(driver: str) -> None:
     server = jack_server.Server(driver=driver, period=1024, sync=True, realtime=False)
     server.start()
     assert server._created

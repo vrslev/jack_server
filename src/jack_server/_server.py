@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ctypes import pointer
 from typing import Callable, Literal, cast
 
 import jack_server._lib as lib
@@ -35,7 +36,7 @@ SetByJack_: SetByJack = SetByJack()
 class Server:
     driver: Driver
     params: dict[str, Parameter]
-    _ptr: lib.jackctl_server_t_p
+    _ptr: pointer[lib.jackctl_server_t]
     _created: bool
     _opened: bool
     _started: bool

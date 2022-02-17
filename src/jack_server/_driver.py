@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ctypes import pointer
 from typing import Literal, cast
 
 import jack_server._lib as lib
@@ -9,10 +10,10 @@ SampleRate = Literal[44100, 48000]
 
 
 class Driver:
-    _ptr: lib.jackctl_driver_t_p
+    _ptr: pointer[lib.jackctl_driver_t]
     params: dict[str, Parameter]
 
-    def __init__(self, ptr: lib.jackctl_driver_t_p) -> None:
+    def __init__(self, ptr: pointer[lib.jackctl_driver_t]) -> None:
         self._ptr = ptr
         self._init_params()
 
@@ -22,7 +23,7 @@ class Driver:
 
     @property
     def name(self) -> str:
-        return lib.jackctl_driver_get_name(self._ptr).decode()
+        return cast(bytes, lib.jackctl_driver_get_name(self._ptr)).decode()
 
     @property
     def device(self) -> str:

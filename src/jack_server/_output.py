@@ -9,7 +9,7 @@ _dont_garbage_collect: list[object] = []
 
 
 def _wrap_error_or_info_callback(
-    callback: Callable[[str], None] | None,
+    callback: Callable[[str], None] | None
 ) -> lib.PrintFunction:
     if callback:
 
