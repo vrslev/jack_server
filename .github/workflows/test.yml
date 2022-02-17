@@ -1,6 +1,7 @@
 name: Test
 
 on:
+  # TODO: Since we install latest JACK, it would be nice to run build every day
   push:
     branches:
       - main
@@ -122,7 +123,7 @@ jobs:
           name: coverage-data
           path: ".coverage.*"
           if-no-files-found: ignore
-
+      - run: ls -la
   coverage: # https://hynek.me/articles/ditch-codecov-python/
     name: Coverage
     runs-on: ubuntu-latest
