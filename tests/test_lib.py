@@ -1,10 +1,10 @@
 import pytest
 
 import jack_server._lib
-from jack_server._lib import get_library_name
+from jack_server._lib import _lib_names, get_library_name
 
 
-@pytest.mark.parametrize("name", ("libjackserver", "jackserver"))
+@pytest.mark.parametrize("name", _lib_names)
 def test_get_library_name_found(monkeypatch: pytest.MonkeyPatch, name: str):
     def func(v: str):
         if v == name:

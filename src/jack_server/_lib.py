@@ -18,14 +18,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ctypes import _CData
 
+_lib_names = ("libjackserver", "jackserver", "libjackserver64")
+
 
 def get_library_name():
-    lib_name = find_library("libjackserver")
-    if not lib_name:
-        lib_name = find_library("jackserver")
-    if not lib_name:
-        raise RuntimeError("Couldn't find jackserver library")
-    return lib_name
+    for name in _lib_names:
+        if result := find_library(name):
+            return result
+
+    raise RuntimeError("Couldn't find jackserver library")
 
 
 lib = CDLL(get_library_name())
