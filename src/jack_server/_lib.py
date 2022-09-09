@@ -4,13 +4,13 @@ from ctypes import (
     POINTER,
     Structure,
     Union,
+    _Pointer,
     c_bool,
     c_char,
     c_char_p,
     c_int,
     c_uint,
     c_void_p,
-    pointer,
 )
 from ctypes.util import find_library
 from typing import TYPE_CHECKING
@@ -34,7 +34,7 @@ lib = CDLL(get_library_name())
 
 class JSList(Structure):
     data: "_CData"
-    next: "pointer[JSList]"
+    next: "_Pointer[JSList]"
 
 
 JSList_p = POINTER(JSList)
