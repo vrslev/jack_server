@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import pointer
+from ctypes import _Pointer, pointer
 from typing import Literal, Union, cast
 
 import jack_server._lib as lib
@@ -10,10 +10,10 @@ ValueType = Union[int, str, bytes, bool]
 
 
 class Parameter:
-    _ptr: pointer[lib.jackctl_parameter_t]
+    _ptr: _Pointer[lib.jackctl_parameter_t]
     type: Literal[1, 2, 3, 4, 5]
 
-    def __init__(self, ptr: pointer[lib.jackctl_parameter_t]) -> None:
+    def __init__(self, ptr: _Pointer[lib.jackctl_parameter_t]) -> None:
         self._ptr = ptr
         self.type = lib.jackctl_parameter_get_type(self._ptr)
 
@@ -75,7 +75,7 @@ class Parameter:
         return f"<jack_server.Parameter name={self.name!r} value={self.value!r}>"
 
 
-def get_params_from_jslist(jslist: pointer[lib.JSList]) -> dict[str, Parameter]:
+def get_params_from_jslist(jslist: _Pointer[lib.JSList]) -> dict[str, Parameter]:
     params: dict[str, Parameter] = {}
 
     for ptr in iterate_jslist(jslist, lib.jackctl_parameter_t_p):
