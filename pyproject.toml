@@ -11,7 +11,7 @@ include = ["src/jack_server/py.typed"]
 python = "^3.8"
 
 [tool.poetry.dev-dependencies]
-black = "22.12.0"
+black = "23.1.0"
 pre-commit = "3.0.4"
 pytest = "7.2.1"
 pytest-cov = "4.0.0"
