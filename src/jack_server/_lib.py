@@ -1,3 +1,4 @@
+import winreg
 from ctypes import (
     CDLL,
     CFUNCTYPE,
@@ -28,6 +29,22 @@ def get_library_name():
 
     raise RuntimeError("Couldn't find jackserver library")
 
+
+def get_windows_registries() -> Dict[str, str]:
+    """Get JACK install registry entry
+
+    Returns:
+        Dictionary containing JACK registry entries.
+    """
+    handle = winreg.OpenKey(
+        winreg.HKEY_LOCAL_MACHINE,
+        r"Software\JACK")
+    registry_entries: Dict[str, str] = {}
+    num_values = winreg.QueryInfoKey(handle)[1]
+    for i in range(num_values):
+        value_name, value_data, _ = winreg.EnumValue(handle, i)
+        registry_entries[value_name] = value_data
+    return registry_entries
 
 lib = CDLL(get_library_name())
 
