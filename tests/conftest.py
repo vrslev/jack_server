@@ -9,11 +9,14 @@ from jack_server._parameter import ValueType
 
 @pytest.fixture(scope="session")
 def driver() -> str:
-    if sys.platform == "darwin":  # pragma: no cover
+    if sys.platform == "darwin":            # pragma: no cover
         return "coreaudio"
-    elif sys.platform == "linux":  # pragma: no cover
+    elif sys.platform == "linux":           # pragma: no cover
         return "dummy"
-    raise NotImplementedError  # pragma: no cover
+    elif sys.platform == "win32":
+        return "portaudio"
+    else:
+        raise RuntimeError("Unsupported platform.")    # pragma: no cover
 
 
 @pytest.fixture
