@@ -1,3 +1,5 @@
+import platform
+import os
 import winreg
 from ctypes import (
     CDLL,
@@ -14,7 +16,7 @@ from ctypes import (
     c_void_p,
 )
 from ctypes.util import find_library
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ctypes import _CData
@@ -24,8 +26,14 @@ _lib_names = ("libjackserver", "jackserver", "libjackserver64")
 
 def get_library_name():
     for name in _lib_names:
-        if result := find_library(name):
-            return result
+        if platform.system() == "Windows":
+            install_path = get_windows_registries()["InstallPath"]
+            file_path = os.path.join(install_path, f"{name}.dll")
+            if os.path.isfile(file_path):
+                return file_path
+        else:
+            if result := find_library(name):
+                return result
 
     raise RuntimeError("Couldn't find jackserver library")
 
