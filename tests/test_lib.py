@@ -16,6 +16,11 @@ def test_get_library_name_not_found(monkeypatch: pytest.MonkeyPatch):
     def func(v: str):
         pass
 
+    monkeypatch.setattr(                # fake windows as platform
+        jack_server._lib.platform,
+        "system",
+        lambda: "Linux")
     monkeypatch.setattr(jack_server._lib, "find_library", func)
     with pytest.raises(RuntimeError, match="Couldn't find"):
         get_library_name()
+
