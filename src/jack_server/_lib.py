@@ -14,34 +14,14 @@ from ctypes import (
     c_uint,
     c_void_p,
 )
-from ctypes.util import find_library
 from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ctypes import _CData
 
-if platform.system() == "Windows":
-    import winreg
 
-_lib_names = ("libjackserver", "jackserver", "libjackserver64")
-
-
-def get_library_name():
-    for name in _lib_names:
-        if platform.system() == "Windows":
-            install_path = get_windows_registries()["InstallPath"]
-            file_path = os.path.join(install_path, f"{name}.dll")
-            if os.path.isfile(file_path):
-                return file_path
-        else:
-            if result := find_library(name):
-                return result
-
-    raise RuntimeError("Couldn't find jackserver library")
-
-
-def get_windows_registries() -> Dict[str, str]:
-    """Get JACK install registry entry
+def get_windows_install_path() -> str:
+    """Get JACK windows install path.
 
     Returns:
         Dictionary containing JACK registry entries.
@@ -49,12 +29,38 @@ def get_windows_registries() -> Dict[str, str]:
     handle = winreg.OpenKey(
         winreg.HKEY_LOCAL_MACHINE,
         r"Software\JACK")
-    registry_entries: Dict[str, str] = {}
     num_values = winreg.QueryInfoKey(handle)[1]
     for i in range(num_values):
         value_name, value_data, _ = winreg.EnumValue(handle, i)
-        registry_entries[value_name] = value_data
-    return registry_entries
+        if value_name == "InstallPath":
+            return value_data
+    raise RuntimeError("JACK install path not found.")
+
+
+def find_library_windows(name: str) -> str:
+    file_path = os.path.join(INSTALL_PATH, f"{name}.dll")
+    if os.path.isfile(file_path):
+        return file_path
+
+
+if platform.system().lower().startswith('win'):
+    import winreg
+    INSTALL_PATH = get_windows_install_path()
+    find_library = find_library_windows
+else:
+    from ctypes.util import find_library
+
+
+_lib_names = ("libjackserver", "jackserver", "libjackserver64")
+
+
+def get_library_name():
+    for name in _lib_names:
+        if result := find_library(name):
+            return result
+
+    raise RuntimeError("Couldn't find jackserver library")
+
 
 lib = CDLL(get_library_name())
 
