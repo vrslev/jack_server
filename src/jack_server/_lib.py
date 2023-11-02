@@ -1,6 +1,5 @@
 import platform
 import os
-import winreg
 from ctypes import (
     CDLL,
     CFUNCTYPE,
@@ -20,6 +19,9 @@ from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ctypes import _CData
+
+if platform.system() == "Windows":
+    import winreg
 
 _lib_names = ("libjackserver", "jackserver", "libjackserver64")
 
@@ -55,7 +57,6 @@ def get_windows_registries() -> Dict[str, str]:
     return registry_entries
 
 lib = CDLL(get_library_name())
-
 
 class JSList(Structure):
     data: "_CData"
