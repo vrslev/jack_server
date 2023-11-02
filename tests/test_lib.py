@@ -30,13 +30,13 @@ def test_get_library_name_not_found(monkeypatch: pytest.MonkeyPatch):
 def test_get_library_windows_name_found(monkeypatch: pytest.MonkeyPatch, name: str):
     monkeypatch.setattr(                # fake windows registries path function
         jack_server._lib,
-        "get_windows_registries",
-        lambda: {'InstallPath': ''})    # empty install path
-    file_path = f"{name}.dll"           # library file path
-    open(file_path, "a").close()        # create fake library file
+        "INSTALL_PATH",
+        "")    # empty install path
     monkeypatch.setattr(                # fake windows as platform
         jack_server._lib.platform,
         "system",
         lambda: "Windows")
+    file_path = f"{name}.dll"           # library file path
+    open(file_path, "a").close()        # create fake library file
     assert get_library_name() == file_path
     os.remove(file_path)
