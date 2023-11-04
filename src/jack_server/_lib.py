@@ -35,13 +35,13 @@ if sys.platform == "win32":
 
     install_path = get_install_path()
 
-    def find_library(name: str) -> Optional[str]:
+    def find_jackserver_lib(name: str) -> Optional[str]:
         path = os.path.join(install_path, f"{name}.dll")
         if os.path.isfile(path):
             return path
 
 else:
-    from ctypes.util import find_library
+    from ctypes.util import find_library as find_jackserver_lib
 
 
 possible_lib_names = ("libjackserver", "jackserver", "libjackserver64")
@@ -49,7 +49,7 @@ possible_lib_names = ("libjackserver", "jackserver", "libjackserver64")
 
 def get_library_name():
     for name in possible_lib_names:
-        if result := find_library(name):
+        if result := find_jackserver_lib(name):
             return result
 
     raise RuntimeError("Couldn't find jackserver library")
