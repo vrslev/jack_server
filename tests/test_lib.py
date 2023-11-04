@@ -10,7 +10,7 @@ def test_get_library_name_found(monkeypatch: pytest.MonkeyPatch, name: str):
         if v == name:
             return "ok"
 
-    monkeypatch.setattr(jack_server._lib, "find_library", func)
+    monkeypatch.setattr(jack_server._lib, "find_jackserver_lib", func)
     assert get_library_name() == "ok"
 
 
@@ -18,6 +18,6 @@ def test_get_library_name_not_found(monkeypatch: pytest.MonkeyPatch):
     def func(v: str):
         pass
 
-    monkeypatch.setattr(jack_server._lib, "find_library", func)
+    monkeypatch.setattr(jack_server._lib, "find_jackserver_lib", func)
     with pytest.raises(RuntimeError, match="Couldn't find"):
         get_library_name()
