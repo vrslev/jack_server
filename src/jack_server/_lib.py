@@ -1,5 +1,5 @@
-import platform
 import os
+import sys
 from ctypes import (
     CDLL,
     CFUNCTYPE,
@@ -14,48 +14,41 @@ from ctypes import (
     c_uint,
     c_void_p,
 )
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from ctypes import _CData
 
 
-def get_windows_install_path() -> str:
-    """Get JACK windows install path.
-
-    Returns:
-        Dictionary containing JACK registry entries.
-    """
-    handle = winreg.OpenKey(
-        winreg.HKEY_LOCAL_MACHINE,
-        r"Software\JACK")
-    num_values = winreg.QueryInfoKey(handle)[1]
-    for i in range(num_values):
-        value_name, value_data, _ = winreg.EnumValue(handle, i)
-        if value_name == "InstallPath":
-            return value_data
-    raise RuntimeError("JACK install path not found.")
-
-
-def find_library_windows(name: str) -> str:
-    file_path = os.path.join(INSTALL_PATH, f"{name}.dll")
-    if os.path.isfile(file_path):
-        return file_path
-
-
-if platform.system().lower().startswith('win'):
+if sys.platform == "win32":
     import winreg
-    INSTALL_PATH = get_windows_install_path()
-    find_library = find_library_windows
+
+    def get_install_path() -> str:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"Software\JACK") as key:
+            num_of_values = winreg.QueryInfoKey(key)[1]
+            for idx in range(num_of_values):
+                name, data, _ = winreg.EnumValue(key, idx)
+                if name == "InstallPath":
+                    return data
+
+        raise RuntimeError("JACK is not installed.")
+
+    install_path = get_install_path()
+
+    def find_library(name: str) -> Optional[str]:
+        path = os.path.join(install_path, f"{name}.dll")
+        if os.path.isfile(path):
+            return path
+
 else:
     from ctypes.util import find_library
 
 
-_lib_names = ("libjackserver", "jackserver", "libjackserver64")
+possible_lib_names = ("libjackserver", "jackserver", "libjackserver64")
 
 
 def get_library_name():
-    for name in _lib_names:
+    for name in possible_lib_names:
         if result := find_library(name):
             return result
 
@@ -63,6 +56,7 @@ def get_library_name():
 
 
 lib = CDLL(get_library_name())
+
 
 class JSList(Structure):
     data: "_CData"
