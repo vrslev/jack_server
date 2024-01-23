@@ -14,7 +14,7 @@ def _wrap_error_or_info_callback(
     if callback:
 
         @wraps(callback)
-        def wrapped_callback(
+        def wrapped_callback(  # pyright: ignore[reportRedeclaration]
             message: bytes,
         ) -> None:
             callback(message.decode())
