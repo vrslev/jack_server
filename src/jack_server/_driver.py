@@ -49,5 +49,13 @@ class Driver:
     def period(self, __value: int) -> None:
         self.params["period"].value = __value
 
+    @property
+    def nperiods(self) -> int:
+        return cast(int, self.params["nperiods"].value)
+
+    @nperiods.setter
+    def nperiods(self, __value: int) -> None:
+        self.params["nperiods"].value = __value
+
     def __repr__(self) -> str:
         return f"<jack_server.Driver name={self.name}>"

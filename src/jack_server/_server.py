@@ -51,6 +51,7 @@ class Server:
         device: str | SetByJack = SetByJack_,
         rate: SampleRate | SetByJack = SetByJack_,
         period: int | SetByJack = SetByJack_,
+        nperiods: int | SetByJack = SetByJack_,
     ) -> None:
         self._created = False
         self._opened = False
@@ -73,6 +74,8 @@ class Server:
             self.driver.rate = rate
         if not isinstance(period, SetByJack):
             self.driver.period = period
+        if not isinstance(nperiods, SetByJack):
+            self.driver.nperiods = nperiods
 
     def _create(
         self,
