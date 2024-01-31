@@ -51,6 +51,7 @@ class Server:
         device: str | SetByJack = SetByJack_,
         rate: SampleRate | SetByJack = SetByJack_,
         period: int | SetByJack = SetByJack_,
+        nperiods: int | SetByJack = SetByJack_,
     ) -> None:
         self._created = False
         self._opened = False
@@ -68,11 +69,17 @@ class Server:
         if not isinstance(realtime, SetByJack):
             self.realtime = realtime
         if not isinstance(device, SetByJack):
-            self.driver.device = device  # pragma: no cover (can't set driver on dummy driver that used in CI)
+            self.driver.device = (
+                device  # pragma: no cover (does not work with dummy driver)
+            )
         if not isinstance(rate, SetByJack):
             self.driver.rate = rate
         if not isinstance(period, SetByJack):
             self.driver.period = period
+        if not isinstance(
+            nperiods, SetByJack
+        ):  # pragma: no cover (works only with alsa driver)
+            self.driver.nperiods = nperiods
 
     def _create(
         self,
