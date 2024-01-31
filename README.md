@@ -26,6 +26,7 @@ server = jack_server.Server(
     device="BuiltInSpeakerDevice",
     rate=48000,
     period=1024,
+    # nperiods=2  # Work only with `alsa` driver
 )
 server.start()
 
@@ -92,6 +93,12 @@ Sampling rate.
 #### `period: int`
 
 Buffer size.
+
+#### `nperiods: int`
+
+Number of periods. 2 is right for motherboard, PCI, PCI-X, etc.; 3 for USB ([source](https://wiki.archlinux.org/title/JACK_Audio_Connection_Kit)).
+
+Can be helpful when tailoring performance on jittery systems.
 
 #### `params: dict[str, jack_server.Parameter]`
 
