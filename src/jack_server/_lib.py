@@ -1,3 +1,5 @@
+import os
+import sys
 from ctypes import (
     CDLL,
     CFUNCTYPE,
@@ -12,18 +14,42 @@ from ctypes import (
     c_uint,
     c_void_p,
 )
-from ctypes.util import find_library
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from ctypes import _CData
 
-_lib_names = ("libjackserver", "jackserver", "libjackserver64")
+
+if sys.platform == "win32":
+    import winreg
+
+    def get_install_path() -> str:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"Software\JACK") as key:
+            num_of_values = winreg.QueryInfoKey(key)[1]
+            for idx in range(num_of_values):
+                name, data, _ = winreg.EnumValue(key, idx)
+                if name == "InstallPath":
+                    return data
+
+        raise RuntimeError("JACK is not installed.")
+
+    install_path = get_install_path()
+
+    def find_jackserver_lib(name: str) -> Optional[str]:
+        path = os.path.join(install_path, f"{name}.dll")
+        if os.path.isfile(path):
+            return path
+
+else:
+    from ctypes.util import find_library as find_jackserver_lib
+
+
+possible_lib_names = ("libjackserver", "jackserver", "libjackserver64")
 
 
 def get_library_name():
-    for name in _lib_names:
-        if result := find_library(name):
+    for name in possible_lib_names:
+        if result := find_jackserver_lib(name):
             return result
 
     raise RuntimeError("Couldn't find jackserver library")
