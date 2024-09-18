@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import jack_server._lib as lib
+
+if TYPE_CHECKING:
+    from ctypes import _FuncPointer
 
 _dont_garbage_collect: list[object] = []
 
 
 def _wrap_error_or_info_callback(
-    callback: Callable[[str], None] | None
-) -> lib.PrintFunction:
+    callback: Callable[[str], None] | None,
+) -> _FuncPointer:
     if callback:
 
         @wraps(callback)
