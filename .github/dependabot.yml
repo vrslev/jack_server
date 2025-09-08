@@ -6,6 +6,10 @@ updates:
       interval: weekly
       day: monday
       time: "07:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: pip
     directory: /
@@ -13,3 +17,7 @@ updates:
       interval: weekly
       day: monday
       time: "07:00"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
