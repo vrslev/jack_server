@@ -54,7 +54,7 @@ jobs:
           key: typing-${{ hashFiles('pyproject.toml') }}
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
 
       - name: Install Poetry
         run: |
