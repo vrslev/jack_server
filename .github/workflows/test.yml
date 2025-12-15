@@ -21,7 +21,7 @@ jobs:
           python-version: 3.12
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pre-commit
@@ -46,7 +46,7 @@ jobs:
           python-version: 3.12
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -89,7 +89,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
@@ -115,7 +115,7 @@ jobs:
           mv .coverage ".coverage.${{ matrix.python-version }}"
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-data-${{ matrix.python-version }}
           path: .coverage.*
@@ -138,7 +138,7 @@ jobs:
         run: pip install -U coverage[toml]
 
       - name: Download data
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -150,7 +150,7 @@ jobs:
           python -m coverage report --fail-under=100
 
       - name: Upload HTML report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
           name: html-report
