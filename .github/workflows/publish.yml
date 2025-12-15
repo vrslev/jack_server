@@ -23,7 +23,7 @@ jobs:
           poetry self add poetry-version-plugin
 
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: release-${{ hashFiles('pyproject.toml') }}
